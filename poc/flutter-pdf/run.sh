@@ -52,6 +52,14 @@ pss() { adb shell dumpsys meminfo $PKG | tr -d '\r' | awk '/Graphics:/ {g=$2} /T
   echo "apk_kb      $(( $(stat -c%s "$APK") / 1024 ))"
 } | tee "$OUT"
 
+# SurfaceFlinger TimeStats for the app's busiest layer: "<total> <janky> <dropped> <layer>" (same metric for every shell).
+sfstats() { adb shell dumpsys SurfaceFlinger --timestats -dump | tr -d '\r' | awk -v p="$PKG" '
+  /^layerName = / {name = substr($0, 14); keep = index(name, p) && name !~ /^Splash/}
+  keep && /^totalFrames = / {t[name] += $3}
+  keep && /^droppedFrames = / {d[name] += $3}
+  keep && /^jankyFrames = / {j[name] += $3}
+  END {for (n in t) if (t[n] > best) {best = t[n]; b = n}; printf "%d %d %d %s", t[b], j[b], d[b], b}'; }
+
 echo "[2/5] install"
 adb install -r "$APK" >/dev/null
 adb shell am start -W -n $PKG/.MainActivity >/dev/null   # creates the files dir
@@ -75,6 +83,7 @@ echo "[4/5] open $PDF and scroll through it (auto mode)"
 adb shell am force-stop $PKG; sleep 1
 echo "$PDF" | adb shell "cat > $F/auto"
 adb logcat -c
+adb shell dumpsys SurfaceFlinger --timestats -enable -clear >/dev/null
 adb shell am start -n $PKG/.MainActivity >/dev/null
 peak=0; peakg=0; start=$(date +%s)
 until adb logcat -d -s flutter | grep -q POC_DONE; do
@@ -85,6 +94,9 @@ until adb logcat -d -s flutter | grep -q POC_DONE; do
   sleep 2
 done
 echo
+read -r sft sfj sfd sfl <<<"$(sfstats)"
+adb shell dumpsys SurfaceFlinger --timestats -disable >/dev/null
+echo "surfaceflinger_frames $sft, janky $sfj ($(awk -v a=$sfj -v b=$sft 'BEGIN {printf "%.2f", b ? 100*a/b : 0}') %), dropped $sfd, layer $sfl" | tee -a "$OUT"
 echo "pss_peak_viewing_mb $peak (graphics $peakg, other $((peak - peakg)))" | tee -a "$OUT"
 
 echo "[5/5] collect"

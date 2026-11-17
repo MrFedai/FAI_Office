@@ -1,0 +1,7 @@
+out/
+build/
+.gradle/
+.kotlin/
+local.properties
+/app/src/main/jniLibs/
+/app/.cxx/

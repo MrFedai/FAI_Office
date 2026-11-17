@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.22)
+project(pdfbridge C)
+add_library(pdfium SHARED IMPORTED)
+set_target_properties(pdfium PROPERTIES IMPORTED_LOCATION ${PDFIUM_DIR}/lib/libpdfium.so)
+add_library(pdfbridge SHARED pdfbridge.c)
+target_include_directories(pdfbridge PRIVATE ${PDFIUM_DIR}/include)
+target_link_libraries(pdfbridge pdfium jnigraphics log)

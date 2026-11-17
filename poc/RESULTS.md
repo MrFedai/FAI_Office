@@ -144,7 +144,7 @@ PSS from `dumpsys meminfo` (what Android's low-memory killer counts), split into
 | Open 100-page PDF → first page visible | 146 ms (107–181 over 3 runs) | 138 ms | ≤ 1 s ✓ |
 | PDFium page render, 1080 px (avg / p90 / max) | 18.7 / 22.1 / 27.3 ms | 18.6 / 20.6 / 24.1 ms | |
 | Peak PSS while scrolling the PDF (graphics + other) | **388 MB** (257 + 131) | 294 MB (185 + 109) | ≤ 300 MB: Impeller ✗, Skia ✓ (barely) |
-| Scroll frames over the 8.3 ms budget (120 Hz) | 2.4 % (88 / 3597) | 12.6 % (450 / 3557) | |
+| In-app frame time over 8.3 ms (Flutter `FrameTiming`; see WP8: not what the display shows) | 2.4 % (88 / 3597) | 12.6 % (450 / 3557) | |
 | Frame time p50 / p90 / p99 | 3.9 / 5.7 / 10.5 ms | 4.7 / 8.8 / 18.0 ms | |
 | Visible page still blank while scrolling | 0.0 % | 0.0 % | |
 | Release APK, arm64 | 21.3 MB | same | ≤ 30 MB ✓ |
@@ -156,7 +156,8 @@ Findings:
 * **Memory is the problem, and it is graphics memory.** Impeller on Vulkan holds ~150 MB of GPU memory (`GL mtrack`
   111 MB + `EGL mtrack` 44 MB) before any document is open, so the 150 MB home budget fails before the app does
   anything. The non-graphics part (~100 MB) is within budget.
-* Skia meets both memory budgets but scrolls 5x jankier, and Flutter logs "Impeller opt-out deprecated": Skia on
+* Skia meets both memory budgets. Its in-app frame times are longer, but SurfaceFlinger counted 0 missed frames
+  for both renderers (WP8 re-run), so the scroll is smooth on screen either way. Flutter logs "Impeller opt-out deprecated": Skia on
   Android is being removed, so it is **not a long-term option**.
 * `ImpellerBackend=opengles` in the manifest is ignored on this device: Flutter 3.47 still picks Vulkan (checked in
   the log). An Impeller-on-GLES comparison is not possible here.
@@ -170,3 +171,44 @@ Consequences for the proposal:
 * The second shell candidate (WP8: Compose / native Android views) must be measured on the same phone, because the
   ~150 MB Impeller baseline is the single biggest number in the light core and the shell decision depends on it.
 * A 4 GB reference phone is still needed to confirm the memory numbers.
+
+## WP8 — Jetpack Compose shell, same scenario, same phone
+
+`compose-pdf/` · Jetpack Compose 1.11.4 (BOM 2026.06.01; 1.12 needs compileSdk 37) · Kotlin 2.4.0 · the same
+PDFium build through a 50-line JNI bridge, rendering on one background thread into `Bitmap`s shown in a
+`LazyColumn` · same page cache (12), same prefetch (about one screen), same auto-scroll (300 ms per page).
+
+Scroll smoothness is now measured for every shell the same way, by SurfaceFlinger (`dumpsys SurfaceFlinger
+--timestats`): frames the display actually presented for the app's layer, and how many missed their deadline.
+In-app frame metrics (Flutter `FrameTiming`, Android `FrameMetrics`) measure different intervals and are not
+comparable; Compose's `FrameMetrics` total even reported 99 % of frames "over budget" on a run where SurfaceFlinger
+counted 9 janky frames out of 3 635.
+
+Galaxy A55, one run each on 2026-11-18, cold-start values are medians of 5.
+
+| Metric | Flutter, Impeller (Vulkan) | Flutter, Skia (deprecated) | Jetpack Compose | Budget |
+|---|---|---|---|---|
+| Release APK, arm64 (shell + PDFium) | 21.3 MB | 21.3 MB | **7.9 MB** | ≤ 30 MB |
+| First frame from process start | 207 ms | 227 ms | **139 ms** | ≤ 1.5 s |
+| Home PSS (graphics + other) | 256 MB (151 + 105) | 111 MB (38 + 73) | **36 MB** (15 + 21) | ≤ 150 MB |
+| First PDF page visible | 132 ms | 99 ms | 84 ms | ≤ 1 s |
+| Peak PSS while scrolling (graphics + other) | 392 MB (257 + 135) | 303 MB (175 + 128) | 319 MB (143 + 176) | ≤ 300 MB |
+| Display-level janky frames while scrolling | 0 / 3634 | 0 / 3583 | 9 / 3635 (0.25 %) | |
+| Visible page blank while scrolling | 0 % | 0 % | 0 % | |
+| PDFium render per page, avg | 19.6 ms | 18.8 ms | 17.4 ms | |
+
+Findings:
+
+* **All three scroll smoothly and open the PDF fast.** Speed does not separate the candidates.
+* **Memory and size do.** At rest Compose uses 36 MB against Flutter's 256 MB (Impeller). The difference is
+  almost all Impeller's fixed GPU allocation (~150 MB); without it (Skia) Flutter is at 111 MB.
+* While viewing, the PoC viewers themselves dominate. Compose keeps each cached page twice (a `Bitmap` in native
+  memory and its GPU texture: "other" 176 MB); Flutter frees the CPU copy after upload. Both viewers need a
+  smaller or tile-based cache in the product; this is viewer design, not a shell property.
+* The Exynos 1480 GPU (Xclipse 530) may make Impeller's fixed cost device-specific. The 4 GB reference phone,
+  with a different GPU, is needed before this number is used as a decision fact.
+
+Not measured here, but part of the shell decision (section 12): the Linux and Web builds. Compose Multiplatform
+runs on the JVM on Linux (a bundled runtime adds tens of MB) and on Kotlin/Wasm with Skia in the browser; Flutter
+runs natively on Linux (GTK) and on WebAssembly with Skia in the browser. Both must fit the Web initial-load
+budget (≤ 5 MB) together with PDFium (2.4 MB). These are measured next.
