@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- PoC WP7: loads the headless LibreOffice WASM engine; fai_test.js (inside the engine) reports over a
+     BroadcastChannel. Throwaway (MASTER_SPEC section 15). -->
+<html lang="en">
+<head><meta charset="utf-8"><title>LibreOffice WASM PoC</title></head>
+<body>
+<pre id="log">loading…</pre>
+<script>
+const T0 = Date.now();
+const faiResults = { page_start: 0 };
+const out = document.getElementById('log');
+function put(k, v) { faiResults[k] = v; out.textContent = Object.entries(faiResults).map(([a, b]) => a.padEnd(28) + b).join('\n'); }
+new BroadcastChannel('fai').onmessage = e => {
+  const { k, v } = e.data;
+  put(k, /_at$/.test(k) || k === 'done' ? (v - T0) + ' ms after page start' : v);
+  if (k === 'done' || k === 'error') {
+    put('wasm_memory_mb', (Module.HEAPU32.buffer.byteLength / 1048576).toFixed(0));
+    if (performance.measureUserAgentSpecificMemory)
+      performance.measureUserAgentSpecificMemory().then(m => put('ua_memory_mb', (m.bytes / 1048576).toFixed(0))).finally(() => put('finished', true));
+    else put('finished', true);
+  }
+};
+var Module = { arguments: ['--headless', '--norestore'] };
+</script>
+<script src="soffice.js"></script>
+</body>
+</html>

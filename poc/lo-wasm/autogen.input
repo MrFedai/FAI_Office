@@ -1,0 +1,19 @@
+--host=wasm32-local-emscripten
+--disable-gui
+--with-wasm-module=calc impress writer
+--with-package-format=emscripten
+--disable-debug
+--disable-crashdump
+--disable-poppler
+--disable-gpgmepp
+--disable-mariadb-sdbc
+--disable-firebird-sdbc
+--disable-postgresql-sdbc
+--disable-lpsolve
+--disable-coinmp
+--disable-report-builder
+--disable-online-update
+--without-java
+--without-help
+--without-myspell-dicts
+--with-external-tar=/tarballs
