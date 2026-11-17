@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:label="lok_poc" android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:extractNativeLibs="false">
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- The office engine runs in its own process; ending the process is how its memory is given back. -->
+        <service android:name=".EngineService" android:process=":engine" android:exported="false" />
+    </application>
+</manifest>

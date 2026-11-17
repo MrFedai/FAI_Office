@@ -212,3 +212,42 @@ Not measured here, but part of the shell decision (section 12): the Linux and We
 runs on the JVM on Linux (a bundled runtime adds tens of MB) and on Kotlin/Wasm with Skia in the browser; Flutter
 runs natively on Linux (GTK) and on WebAssembly with Skia in the browser. Both must fit the Web initial-load
 budget (≤ 5 MB) together with PDFium (2.4 MB). These are measured next.
+
+## WP6 (part 2) — LibreOfficeKit on the phone, engine in its own process
+
+`lok-android/` · the LibreOffice Android build from WP6 part 1 · Galaxy A55 (see WP5) · a plain-View UI process
+binds `EngineService` in a separate process (`:engine`); the engine opens the document, paints the first screen
+(1080 px wide, same windows as the Linux PoC) and hands the pixels to the UI through `SharedMemory`. When the UI
+unbinds, the engine process ends itself. Bundled fonts: Liberation, Carlito, Caladea (section 6), 8 MB.
+Times are "user asks → first screen drawn in the UI", so they include binding, IPC and the pixel copy.
+
+| Metric | Result | Budget |
+|---|---|---|
+| Typical 20-page DOCX, engine not yet loaded (3 cold runs: DOCX first) | **0.87 s** (engine start 15 ms, init 127 ms, load 375 ms, first screen 281 ms) | ≤ 5 s ✓ |
+| Same, very first run after install (assets unpacked first: 49 ms) | 1.14 s | |
+| XLSX / PPTX first, engine not yet loaded | 0.47 s / 0.55 s | |
+| Typical DOCX, engine already loaded (3 runs) | 0.62 / 0.70 / 0.78 s | ≤ 2 s ✓ |
+| XLSX / PPTX, engine already loaded | 0.21–0.34 s / 0.25–0.29 s | |
+| Engine process PSS with one document open (4 runs) | 209–228 MB (no GPU memory: the engine renders on the CPU) | viewing; editing ≤ 600 MB not yet measured |
+| UI process PSS (plain Views + one 1080 px screen bitmap) | 93–109 MB | |
+| After unbind: engine process | **gone in every run**; UI PSS 83–91 MB | |
+| Harness APK, arm64 (engine + assets + fonts; libraries stored uncompressed) | 211 MB installed, 81 MB gzip | module ≤ 120 MB ✓ |
+
+Rendering checked on the device screenshots: Writer page with header, table, footer fields and Liberation fonts;
+Calc values and formulas; Impress slide with Turkish glyphs. Same output as the Linux PoC.
+
+Findings:
+
+* **The office engine meets every measured time budget on the phone**, with a wide margin, even cold.
+* **The separate-process design works on Android**: binding costs ~55 ms, the engine process starts in 15 ms,
+  and ending it returns all of its ~220 MB. This is the way to meet "idle engines are unloaded" (section 3).
+* Writer sometimes spends 200–280 ms on the first paint right after loading (layout still finishing); a
+  progressive first screen (paint what is laid out, refine) would cut the cold DOCX time further.
+* Integration notes for the product: the engine's Java bridge expects an `Activity` (changed to `Context`);
+  `assets/unpack` must be extracted to the data directory before init (done once, 49 ms); LibreOffice's
+  `fonts.conf` points the fontconfig cache at its sample package name and must be rewritten.
+* The corpus files are LibreOffice-produced. Microsoft-produced DOCX/XLSX/PPTX and heavier real documents still
+  have to be measured (fidelity test plan, deliverable 9).
+* Delivery was the "full" variant (engine inside the same APK, the F-Droid / direct-APK row of section 3). Play
+  on-demand feature-module delivery was not tested; it needs `bundletool` local testing at least, and is a
+  Phase 6 item.
