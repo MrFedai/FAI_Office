@@ -16,6 +16,18 @@ Graphite2 upstream `LICENSE`. Classification is from the notice text, not from m
   The condition is checked in WP6: the notice file and linked libraries of the actual Android engine build must
   contain none of the "remove" rows below. If one cannot be removed, the candidate fails (section 11).
 
+## LibreOffice Android configure (checked 2026-11-17, `lo-android/`)
+
+* LibreOffice's Android target sets `--enable-mpl-subset` by itself: configure refuses or drops every piece that is
+  not MPL or more liberal (poppler, GPGME, PostgreSQL, report builder, GPL icon themes, …). `MPL_SUBSET=TRUE` in
+  the generated `config_host.mk`.
+* The same Android block forces CoinMP (CPL-1.0) on and ignores `--disable-coinmp`. `lo-android/build.sh` patches
+  that one line; result `ENABLE_COINMP=` (off). The product build carries the same one-line patch.
+* Also off in the result: poppler, libcmis, GPGME, MariaDB, Firebird, PostgreSQL, lpsolve, LDAP, Breakpad,
+  bundled fonts, dictionaries, help. Theme: Colibre only.
+* Still in the build list, all allowed: curl (MIT-style), HSQLDB and Java WebSocket (Java side, BSD / MIT, not
+  in the native library), SANE (public-domain header).
+
 ## LibreOffice — components that must be removed
 
 | Component | License (from notice) | What it does | Switch (26.8.2.2) |
