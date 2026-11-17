@@ -128,3 +128,45 @@ Against the Android base budget (≤ 30 MB, light core, one ABI): shell + PDF en
 Checked on the host (Linux PDFium, same release): the FFI binding and worker protocol open the 101-page PDF,
 render first and last page at 1080 px, RGBA order, not blank (`flutter test`). Not checked yet: the UI and the
 whole flow on Android. No emulator: the host has no KVM access for this user.
+
+## WP5 (part 2) — Flutter + PDFium on a real phone
+
+Device: **Samsung Galaxy A55 (SM-A556E)**, Exynos 1480, 8 GB (7.3 GB visible), Android 16, 1080x2340 at 120 Hz.
+This is an upper mid-range phone, **not the 4 GB reference device** of section 7; memory budgets need a re-check on
+a 4 GB phone. Medians of 5 cold starts; one auto-scroll run per renderer through all 101 pages at 300 ms per page.
+PSS from `dumpsys meminfo` (what Android's low-memory killer counts), split into graphics and the rest.
+
+| Metric | Impeller (Vulkan, default) | Skia (Impeller off) | Budget |
+|---|---|---|---|
+| First Flutter frame from process start | 243 ms | 222 ms | ≤ 1.5 s ✓ |
+| `am start` TotalTime | 339 ms | 298 ms | |
+| Home PSS (graphics + other) | **254 MB** (~155 + ~100) | 96 MB (33 + 63) | ≤ 150 MB: Impeller ✗, Skia ✓ |
+| Open 100-page PDF → first page visible | 146 ms (107–181 over 3 runs) | 138 ms | ≤ 1 s ✓ |
+| PDFium page render, 1080 px (avg / p90 / max) | 18.7 / 22.1 / 27.3 ms | 18.6 / 20.6 / 24.1 ms | |
+| Peak PSS while scrolling the PDF (graphics + other) | **388 MB** (257 + 131) | 294 MB (185 + 109) | ≤ 300 MB: Impeller ✗, Skia ✓ (barely) |
+| Scroll frames over the 8.3 ms budget (120 Hz) | 2.4 % (88 / 3597) | 12.6 % (450 / 3557) | |
+| Frame time p50 / p90 / p99 | 3.9 / 5.7 / 10.5 ms | 4.7 / 8.8 / 18.0 ms | |
+| Visible page still blank while scrolling | 0.0 % | 0.0 % | |
+| Release APK, arm64 | 21.3 MB | same | ≤ 30 MB ✓ |
+
+Findings:
+
+* **Speed is not a problem.** Start, first page and scrolling are far inside the budgets; with Impeller the scroll
+  is smooth at 120 Hz and no page is ever shown blank.
+* **Memory is the problem, and it is graphics memory.** Impeller on Vulkan holds ~150 MB of GPU memory (`GL mtrack`
+  111 MB + `EGL mtrack` 44 MB) before any document is open, so the 150 MB home budget fails before the app does
+  anything. The non-graphics part (~100 MB) is within budget.
+* Skia meets both memory budgets but scrolls 5x jankier, and Flutter logs "Impeller opt-out deprecated": Skia on
+  Android is being removed, so it is **not a long-term option**.
+* `ImpellerBackend=opengles` in the manifest is ignored on this device: Flutter 3.47 still picks Vulkan (checked in
+  the log). An Impeller-on-GLES comparison is not possible here.
+* The PDF viewer's own share is tunable: the PoC keeps 12 decoded pages of 6.6 MB each as textures (~80 MB). A
+  smaller cache or tile-based rendering lowers the viewing peak; the home-screen baseline does not change.
+
+Consequences for the proposal:
+
+* The section 7 RAM numbers must say what they measure. Options for the owner: (a) keep PSS and raise the home
+  budget to ~250 MB for a Flutter shell; (b) budget non-graphics PSS (~100 MB here) and graphics separately.
+* The second shell candidate (WP8: Compose / native Android views) must be measured on the same phone, because the
+  ~150 MB Impeller baseline is the single biggest number in the light core and the shell decision depends on it.
+* A 4 GB reference phone is still needed to confirm the memory numbers.

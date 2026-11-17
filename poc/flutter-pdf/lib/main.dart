@@ -22,15 +22,6 @@ void report(String k, Object v) {
   debugPrint('POC_RESULT $k $v');
 }
 
-/// Milliseconds since this process started (from /proc, 10 ms resolution).
-double msSinceProcessStart() {
-  final stat = File('/proc/self/stat').readAsStringSync();
-  final fields = stat.substring(stat.lastIndexOf(')') + 2).split(' ');
-  final startTicks = int.parse(fields[19]); // field 22 overall
-  final uptime = double.parse(File('/proc/uptime').readAsStringSync().split(' ').first);
-  return uptime * 1000 - startTicks * 10;
-}
-
 double rssMb() {
   final m = RegExp(r'VmRSS:\s+(\d+)').firstMatch(File('/proc/self/status').readAsStringSync());
   return int.parse(m!.group(1)!) / 1024;
@@ -44,10 +35,7 @@ String pct(List<double> xs, double p) {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const PocApp());
-  WidgetsBinding.instance.waitUntilFirstFrameRasterized.then((_) {
-    report('first_frame_ms_from_process_start', msSinceProcessStart().toStringAsFixed(0));
-  });
+  runApp(const PocApp()); // first-frame time is logged by MainActivity (apps cannot read /proc/uptime)
 }
 
 class PocApp extends StatelessWidget {
