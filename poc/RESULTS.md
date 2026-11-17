@@ -109,3 +109,22 @@ any trimming. Not yet tried: dropping unused filters (Visio, Publisher, CorelDra
 the engine's own bundled PDFium (the light core already has one), and NSS (only for signatures / encryption).
 
 Not yet measured: on-device load time and memory (needs the phone, WP6 part 2).
+
+## WP5 (part 1) — Flutter + PDFium Android app, built
+
+`flutter-pdf/` · Flutter 3.47.7 · PDFium chromium/8111 android-arm64 via `dart:ffi`, rendering in a background
+isolate, pages shown as `RawImage` in a lazily built list. `run.sh` installs it and measures cold start, first
+page, scroll frame times, blank pages while scrolling, and PSS / RSS. On-device numbers wait for the phone.
+
+| Metric | Result |
+|---|---|
+| Release APK, arm64 (Flutter engine + app + PDFium) | 21.3 MB (native libraries stored uncompressed) |
+| Same content compressed (indication for download size): gzip -9 / xz -9 | 10.1 MB / 7.3 MB |
+| Native parts, gzip -9: libflutter / libpdfium / libapp | 5.2 / 3.2 / 1.4 MB |
+
+Against the Android base budget (≤ 30 MB, light core, one ABI): shell + PDF engine use ~21 MB installed and
+~10 MB on the wire, before viewer, archive and UI.
+
+Checked on the host (Linux PDFium, same release): the FFI binding and worker protocol open the 101-page PDF,
+render first and last page at 1080 px, RGBA order, not blank (`flutter test`). Not checked yet: the UI and the
+whole flow on Android. No emulator: the host has no KVM access for this user.
