@@ -3,6 +3,9 @@
 # and the console prints one line per finished build target count.
 # Usage: build.sh            (image + configure + make)
 #        build.sh configure  (stop after autogen, to check options)
+#        build.sh devam      (continue an interrupted make, no autogen)
+# make runs in a detached container (fai-lo-build), so it survives the calling shell; re-running build.sh
+# while it runs only re-attaches the progress display.
 set -euo pipefail
 cd "$(dirname "$0")"
 SRC=${LO_SRC:-$HOME/dev/cache/fai-office/lo-src/core}
@@ -22,19 +25,31 @@ if s[b:b + 18] == 'enable_coinmp=yes\n':
 PY
 echo "[1/3] docker image"
 docker build -q -t fai-lo-android --build-arg UID="$(id -u)" . >/dev/null
-run() { docker run --rm -v "$SRC":/src -v "$TAR":/tarballs -v "$SDK":/sdk:ro -v "$NDK":/ndk:ro \
-          -v "$HOME/dev/cache/fai-office/lo-src/ccache":/home/builder/.ccache fai-lo-android bash -c "$1"; }
+VOLS=(-v "$SRC":/src -v "$TAR":/tarballs -v "$SDK":/sdk:ro -v "$NDK":/ndk:ro -v "$PWD/out":/out
+      -v "$HOME/dev/cache/fai-office/lo-src/ccache":/home/builder/.ccache)
+run() { docker run --rm "${VOLS[@]}" fai-lo-android bash -c "$1"; }
+running() { [ "$(docker inspect -f '{{.State.Running}}' fai-lo-build 2>/dev/null)" = true ]; }
+progress() {
+  local start=$1
+  while running; do
+    n=$(grep -c '^\[' out/build.log || true)
+    echo "$(date +%H:%M) $(( ($(date +%s) - start) / 60 )) min, $n targets, last: $(grep '^\[' out/build.log | tail -1 | cut -c1-80)"
+    sleep 60
+  done
+  code=$(docker inspect -f '{{.State.ExitCode}}' fai-lo-build)
+  docker rm fai-lo-build >/dev/null
+  [ "$code" = 0 ] && echo "make ok in $(( ($(date +%s) - start) / 60 )) min" || { echo "make FAILED ($code), tail:"; tail -30 out/build.log; exit 1; }
+}
+if running; then echo "build already running, attaching"; progress "$(date +%s)"; exit 0; fi
+docker rm fai-lo-build >/dev/null 2>&1 || true
+if [ "${1:-}" != devam ]; then
 echo "[2/3] autogen (NDK $(basename "$NDK"))"
 run "./autogen.sh" 2>&1 | tee out/autogen.log | grep -E 'WARNING|error|unrecognized|^Build ' || true
 grep -q 'unrecognized options' out/autogen.log && echo "!! unrecognized options, see out/autogen.log"
 [ "${1:-}" = configure ] && exit 0
+fi
 echo "[3/3] make (log: out/build.log)"
-start=$(date +%s)
-run "make -j$(nproc) build" > out/build.log 2>&1 &
-pid=$!
-while kill -0 $pid 2>/dev/null; do
-  sleep 60
-  n=$(grep -c '^\[' out/build.log || true)
-  echo "$(date +%H:%M) $(( ($(date +%s) - start) / 60 )) min, $n targets, last: $(grep '^\[' out/build.log | tail -1 | cut -c1-80)"
-done
-wait $pid && echo "make ok in $(( ($(date +%s) - start) / 60 )) min" || { echo "make FAILED, tail:"; tail -30 out/build.log; exit 1; }
+[ -f out/build.log ] && mv out/build.log "out/build.$(date +%H%M).log"
+docker run -d --name fai-lo-build "${VOLS[@]}" fai-lo-android \
+  bash -c "make -j$(nproc) build > /out/build.log 2>&1" >/dev/null
+progress "$(date +%s)"
