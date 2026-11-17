@@ -13,7 +13,7 @@ TAR=$HOME/dev/cache/fai-office/lo-src/tarballs
 SDK=${ANDROID_HOME:-$HOME/dev/android-sdk}
 NDK=$(ls -d "$SDK"/ndk/2[7-9]* | sort -V | tail -1)
 mkdir -p out "$TAR"
-cp autogen.input "$SRC/autogen.input"
+cmp -s autogen.input "$SRC/autogen.input" || cp autogen.input "$SRC/autogen.input"  # a newer copy makes make re-run configure
 # CoinMP (CPL-1.0) is not allowed by section 11. The Android block of configure.ac forces it on; turn it off.
 python3 - "$SRC/configure.ac" "$SRC/bin/lo-all-static-libs" <<'PY'
 import re, sys

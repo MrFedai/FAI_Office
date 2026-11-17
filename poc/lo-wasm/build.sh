@@ -14,7 +14,7 @@ if [ ! -d "$SRC" ]; then
   echo "[0/3] source: git worktree of $TAG (shares objects with the Android tree)"
   git -C "$CACHE/core" worktree add --detach "$SRC" "$TAG"
 fi
-cp autogen.input "$SRC/autogen.input"
+cmp -s autogen.input "$SRC/autogen.input" || cp autogen.input "$SRC/autogen.input"  # a newer copy makes make re-run configure
 echo "[1/3] docker image"
 docker build -q -t fai-lo-wasm --build-arg UID="$(id -u)" . >/dev/null
 VOLS=(-v "$SRC":/src -v "$CACHE/tarballs":/tarballs -v "$PWD/out":/out -v "$CACHE/ccache-wasm":/home/builder/.ccache)
@@ -26,8 +26,8 @@ progress() {
     echo "$(date +%H:%M) $(( ($(date +%s) - start) / 60 )) min, $n targets, last: $(grep '^\[' out/build.log | tail -1 | cut -c1-80)"
     sleep 60
   done
-  code=$(docker inspect -f '{{.State.ExitCode}}' fai-lo-wasm-build)
-  docker rm fai-lo-wasm-build >/dev/null
+  code=$(docker inspect -f "{{.State.ExitCode}}" fai-lo-wasm-build 2>/dev/null || echo "?")
+  docker rm fai-lo-wasm-build >/dev/null 2>&1 || true
   [ "$code" = 0 ] && echo "make ok in $(( ($(date +%s) - start) / 60 )) min" || { echo "make FAILED ($code), tail:"; tail -30 out/build.log; exit 1; }
 }
 if running; then echo "build already running, attaching"; progress "$(date +%s)"; exit 0; fi
