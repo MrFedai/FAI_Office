@@ -11,7 +11,7 @@ output are not committed; they live under `~/dev/cache/fai-office/` and each PoC
 | 1 | PDFium renders a corpus PDF on Linux | 15.1 | prebuilt PDFium | done |
 | 2 | PDFium renders a corpus PDF in a browser (WASM) | 15.1, 9 | prebuilt PDFium WASM | done |
 | 3 | Seed corpus: freely redistributable PDF, DOCX, XLSX, PPTX | 5 | LibreOffice (local) | done (seed) |
-| 4 | Office engine (LibreOfficeKit) opens DOCX / XLSX / PPTX on Linux | 15.2 | distro LibreOffice + LOK headers | |
+| 4 | Office engine (LibreOfficeKit) opens DOCX / XLSX / PPTX on Linux | 15.2 | LibreOffice (local) + LOK headers | done |
 | 5 | Flutter shell shows PDFium tiles on Android | 15.1, 15.4 | Android device or emulator | |
 | 6 | Office engine on Android as a separate module | 15.2, 3 | LibreOffice Android build (hours) | |
 | 7 | Office engine as WASM in a browser: size, load time, memory | 15.3, 9 | WASM build of LibreOffice | |

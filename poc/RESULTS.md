@@ -56,3 +56,35 @@ Findings:
 * The prebuilt WASM is not modularized and defines globals (`out`, `Module`); the product needs its own
   modularized build (`-sMODULARIZE`). Noted for Phase 2.
 * WASM is ~1.7x slower than native per page on the same host; still far inside the 1 s first-page budget.
+
+## PoC-4 — LibreOfficeKit on Linux (WP4)
+
+`lok-linux/` · official LibreOffice 26.8.2 x86-64 build, unpacked · LOK headers 26.8.2.2 · first screen =
+1080 px wide (Writer / Calc: 1080x1920 window at the top; Impress: whole first slide) · online spell check off
+· one process per run, documents opened one after another, 3 runs in different orders.
+
+| Metric | Result |
+|---|---|
+| Engine install (desktop build, all locales, unstripped) | 734 MB; `program/` 413 MB; `libmergedlo.so` 91 MB |
+| `lok_init` (engine load, after profile exists) | ~100 ms, RSS 2 → 99 MB |
+| First document, engine not yet loaded: DOCX 20 p. / XLSX / PPTX | 0.58 s / 0.29 s / 0.42 s |
+| Engine already loaded: DOCX 20 p. / XLSX / PPTX | 0.23–0.30 s / 0.11 s / 0.10–0.22 s |
+| First-screen paint after load | DOCX ~60 ms, XLSX ~36 ms, PPTX ~20 ms |
+| RSS with one document open | 210–240 MB |
+| RSS after closing every document (3 types opened) | ~300 MB, not returned |
+
+Rendering checked visually: Writer page with header, tables, footer fields; Calc formulas computed (SUMIF,
+running totals); Impress bullets and Turkish glyphs.
+
+Findings:
+
+* **Closing documents does not give memory back.** After three documents the process stays at ~300 MB.
+  `destroy()` of the whole office instance hangs in this build. "Idle engines are unloaded" (section 3) is
+  therefore only achievable by running the office engine in its **own process** that is ended when idle.
+  This is an architecture input: the shell talks to the engine over IPC, tiles cross the process boundary
+  (shared memory on Linux, `SharedMemory` / ashmem on Android).
+* Online spell check must be off for viewing: with it on, Turkish text gets red marks and the first paint of
+  the DOCX costs 177 ms instead of 70 ms.
+* First run with no user profile: `lok_init` ~190 ms instead of ~100 ms, profile 616 KB. Not a concern.
+* The desktop install size says nothing about the Android module budget (≤ 120 MB); that is measured in WP6
+  with a stripped, feature-trimmed Android build.

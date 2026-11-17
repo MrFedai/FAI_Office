@@ -170,10 +170,10 @@ def fodp(slides, seed):
     pages = []
     for i in range(slides):
         items = []
-        items.append(f'<draw:frame svg:x="1.5cm" svg:y="1cm" svg:width="25cm" svg:height="2.5cm"><draw:text-box>'
+        items.append(f'<draw:frame draw:style-name="F" svg:x="1.5cm" svg:y="1cm" svg:width="25cm" svg:height="2.5cm"><draw:text-box>'
                      f'<text:p text:style-name="T">{esc(sentence(rng, 5))}</text:p></draw:text-box></draw:frame>')
         if i % 3 == 1:
-            items.append(f'<draw:frame svg:x="5cm" svg:y="4.5cm" svg:width="18cm" svg:height="11cm"><draw:image>'
+            items.append(f'<draw:frame draw:style-name="F" svg:x="5cm" svg:y="4.5cm" svg:width="18cm" svg:height="11cm"><draw:image>'
                          f'<office:binary-data>{base64.b64encode(png(480, 300, i)).decode()}</office:binary-data></draw:image></draw:frame>')
         elif i % 3 == 2:
             for k in range(4):
@@ -181,13 +181,14 @@ def fodp(slides, seed):
                              f'<text:p>{k + 1}</text:p><draw:enhanced-geometry draw:type="{["ellipse", "rectangle", "diamond", "star5"][k]}"/></draw:custom-shape>')
         else:
             bullets = "".join(f"<text:list-item><text:p>{esc(sentence(rng, 7))}</text:p></text:list-item>" for _ in range(5))
-            items.append(f'<draw:frame svg:x="1.5cm" svg:y="4.5cm" svg:width="25cm" svg:height="12cm"><draw:text-box>'
+            items.append(f'<draw:frame draw:style-name="F" svg:x="1.5cm" svg:y="4.5cm" svg:width="25cm" svg:height="12cm"><draw:text-box>'
                          f'<text:list>{bullets}</text:list></draw:text-box></draw:frame>')
         pages.append(f'<draw:page draw:name="s{i + 1}" draw:master-page-name="M">{"".join(items)}</draw:page>')
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <office:document {NS} office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.presentation">
 <office:styles>
  <style:style style:name="S" style:family="graphic"><style:graphic-properties draw:fill="solid" draw:fill-color="#3465a4"/></style:style>
+ <style:style style:name="F" style:family="graphic"><style:graphic-properties draw:fill="none" draw:stroke="none"/></style:style>
 </office:styles>
 <office:automatic-styles>
  <style:page-layout style:name="PL"><style:page-layout-properties fo:page-width="28cm" fo:page-height="15.75cm" fo:margin="0cm"/></style:page-layout>
