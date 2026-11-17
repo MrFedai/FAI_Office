@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- PoC-2: PDFium WASM in a browser. Throwaway code (MASTER_SPEC section 15).
+     Serve this folder with run.sh; open /?pdf=<name> to auto-load a corpus PDF, or pick a file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDFium WASM PoC</title>
+<style>
+  body { font: 14px system-ui, sans-serif; margin: 16px; background: #f4f4f4; color: #222; }
+  pre { background: #fff; padding: 8px; border: 1px solid #ddd; white-space: pre-wrap; }
+  canvas { max-width: 100%; background: #fff; box-shadow: 0 1px 4px #0003; }
+</style>
+</head>
+<body>
+<input type="file" id="file" accept="application/pdf">
+<pre id="log">loading wasm…</pre>
+<canvas id="page"></canvas>
+<script>
+const T0 = performance.now();
+const pocMs = () => (performance.now() - T0).toFixed(1);
+const pocOut = document.getElementById('log');
+const pocResult = { wasm_ready_ms: null };
+function pocLog(k, v) { pocResult[k] = v; pocOut.textContent = Object.entries(pocResult).map(([a, b]) => `${a.padEnd(22)} ${b}`).join('\n'); }
+
+var Module = {
+  onRuntimeInitialized() {
+    Module._FPDF_InitLibrary();
+    pocLog('wasm_ready_ms', pocMs());
+    pocLog('wasm_heap_mb', (Module.HEAPU8.length / 1048576).toFixed(1));
+    const name = new URLSearchParams(location.search).get('pdf');
+    if (name) fetch('corpus/' + name).then(r => r.arrayBuffer()).then(b => openPdf(new Uint8Array(b), name));
+  },
+};
+
+document.getElementById('file').onchange = async e => {
+  const f = e.target.files[0];
+  openPdf(new Uint8Array(await f.arrayBuffer()), f.name);
+};
+
+function renderPage(doc, i, width, canvas) {
+  const page = Module._FPDF_LoadPage(doc, i);
+  const pw = Module._FPDF_GetPageWidthF(page), ph = Module._FPDF_GetPageHeightF(page);
+  const height = Math.round(width * ph / pw);
+  const bmp = Module._FPDFBitmap_Create(width, height, 1);
+  Module._FPDFBitmap_FillRect(bmp, 0, 0, width, height, 0xFFFFFFFF);
+  Module._FPDF_RenderPageBitmap(bmp, page, 0, 0, width, height, 0, 0x01 | 0x10);  // FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER (RGBA)
+  if (canvas) {
+    const ptr = Module._FPDFBitmap_GetBuffer(bmp), stride = Module._FPDFBitmap_GetStride(bmp);
+    const rgba = new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, stride * height).slice();
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').putImageData(new ImageData(rgba, width, height), 0, 0);
+  }
+  Module._FPDFBitmap_Destroy(bmp);
+  Module._FPDF_ClosePage(page);
+}
+
+function openPdf(bytes, name) {
+  const t = performance.now();
+  const ptr = Module._malloc(bytes.length);
+  Module.HEAPU8.set(bytes, ptr);
+  const doc = Module._FPDF_LoadMemDocument(ptr, bytes.length, 0);
+  if (!doc) { pocLog('error', 'load failed ' + Module._FPDF_GetLastError()); return; }
+  const pages = Module._FPDF_GetPageCount(doc);
+  const tLoad = performance.now();
+  const width = Math.min(1080, Math.round(innerWidth * devicePixelRatio));
+  renderPage(doc, 0, width, document.getElementById('page'));
+  const tFirst = performance.now();
+  pocLog('file', name);
+  pocLog('pages', pages);
+  pocLog('width_px', width);
+  pocLog('load_ms', (tLoad - t).toFixed(1));
+  pocLog('first_page_ms', (tFirst - tLoad).toFixed(1) + `   (since script start ${pocMs()})`);
+  // Let the first page paint, then time the remaining pages.
+  requestAnimationFrame(() => setTimeout(() => {
+    let worst = 0;
+    const a = performance.now();
+    for (let i = 1; i < pages; i++) {
+      const s = performance.now();
+      renderPage(doc, i, width, null);
+      worst = Math.max(worst, performance.now() - s);
+    }
+    pocLog('other_pages_avg_ms', pages > 1 ? ((performance.now() - a) / (pages - 1)).toFixed(1) + `, worst ${worst.toFixed(1)}` : '-');
+    pocLog('wasm_heap_mb', (Module.HEAPU8.length / 1048576).toFixed(1));
+    if (performance.memory) pocLog('js_heap_mb', (performance.memory.usedJSHeapSize / 1048576).toFixed(1));
+    pocLog('done', true);
+    Module._FPDF_CloseDocument(doc);
+    Module._free(ptr);
+  }, 0));
+}
+</script>
+<script async src="pdfium.js"></script>
+</body>
+</html>
