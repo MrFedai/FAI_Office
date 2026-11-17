@@ -30,7 +30,7 @@ grep -q 'unrecognized options' out/autogen.log && echo "!! unrecognized options,
 [ "${1:-}" = configure ] && exit 0
 echo "[3/3] make (log: out/build.log)"
 start=$(date +%s)
-run "make -j$(nproc) build-nocheck" > out/build.log 2>&1 &
+run "make -j$(nproc) build" > out/build.log 2>&1 &
 pid=$!
 while kill -0 $pid 2>/dev/null; do
   sleep 60
