@@ -15,7 +15,7 @@ output are not committed; they live under `~/dev/cache/fai-office/` and each PoC
 | 5 | Flutter shell shows PDFium tiles on Android | 15.1, 15.4 | real Android device (owner connects one) | done on Galaxy A55 (`flutter-pdf/`); 4 GB reference phone still open |
 | 6 | Office engine on Android as a separate module | 15.2, 3 | LibreOffice Android build (hours) | done: built, license-checked, measured on the phone (`lok-android/`) |
 | 7 | Office engine as WASM in a browser: size, load time, memory | 15.3, 9 | WASM build of LibreOffice | |
-| 8 | Second shell candidate for comparison (Compose Multiplatform) | 12, 15 | — | Android done (`compose-pdf/`); Linux + Web sizes next |
+| 8 | Second shell candidate for comparison (Compose Multiplatform) | 12, 15 | — | done: Android (`compose-pdf/`), Linux + Web (`shell-size/`) |
 | 9 | License audit of LibreOffice bundled externals | 11 | — | done (`LICENSE_AUDIT.md`), build check in WP6 |
 | 10 | Proposal document with the 11 deliverables of section 15 | 15 | 1–9 | |
 

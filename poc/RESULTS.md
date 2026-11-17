@@ -251,3 +251,40 @@ Findings:
 * Delivery was the "full" variant (engine inside the same APK, the F-Droid / direct-APK row of section 3). Play
   on-demand feature-module delivery was not tested; it needs `bundletool` local testing at least, and is a
   Phase 6 item.
+
+## WP8 (part 2) — shells on Linux and Web
+
+`shell-size/` · the same minimal home screen in both candidates (Material 3 app bar, a button, a 100-row lazy
+list) · Flutter 3.47.7; Compose Multiplatform 1.12.1 with Kotlin 2.4.0 (Linux: JVM app image with a jlink'ed
+runtime, ProGuard on; Web: Kotlin/Wasm) · `run.sh` builds and measures both. PDF engine not included: add
+PDFium's own share (Linux 7.7 MB / 3.2 MB gzip, Web 2.4 MB gzip, from PoC-1/2).
+
+Linux was measured on the development host under WSLg (Wayland on Windows). Start times are comparable between
+the two shells; absolute RSS includes WSLg's graphics driver and must be re-measured on a native Linux desktop.
+Web sizes are what headless Chromium actually fetched on first load, gzip -9 of those files (brotli would be
+~15–20 % smaller for both).
+
+| Metric | Flutter | Compose Multiplatform | Budget |
+|---|---|---|---|
+| Linux package (shell only) | **22 MB**, 8.5 MB tar.gz | 115 MB (runtime 77 MB), 45.8 MB tar.gz | — |
+| Linux first frame from process start (median of 5) | **260 ms** | 1 132 ms (JVM start) | ≤ 1.5 s |
+| Linux RSS at rest (WSLg) | ~273 MB | ~225 MB | ≤ 150 MB (Android number) |
+| Web first load, shell only, gzip | **2.19 MB** (Wasm/skwasm) · 2.69 MB (JS/CanvasKit) | 4.06 MB (Wasm/Skiko) | |
+| Web first load with PDFium | **4.6 MB** · 5.1 MB | 6.5 MB | ≤ 5 MB |
+| Off-origin requests on first load | **with default flags: CanvasKit/skwasm and Roboto from Google's CDN**; none with `--no-web-resources-cdn` | none | none allowed (sections 8, 9) |
+
+Both render the screen correctly (screenshots checked: `shell-size/out/`).
+
+Findings:
+
+* **Android and the other platforms pull in opposite directions.** Compose is far lighter on Android (WP8 part 1:
+  36 vs 256 MB at rest, 7.9 vs 21.3 MB APK). On Linux and Web Flutter is lighter: 5x smaller Linux package, 4x
+  faster start, and the only candidate that fits the Web 5 MB budget together with PDFium (Wasm build, 4.6 MB).
+* Compose Multiplatform on Linux carries a JVM: ~1.1 s to first frame and a 77 MB runtime. That is inside the
+  1.5 s start budget but leaves little margin, and there is no Linux size budget yet.
+* Flutter Web must always be built with `--no-web-resources-cdn` (and bundled fonts); the default build fetches
+  its renderer and the Roboto font from Google servers, which the spec forbids.
+* Compose Web (4.06 MB) does not fit the 5 MB initial-load budget once PDFium is added, unless PDFium is loaded on
+  first PDF open instead of in the initial load.
+* Memory at rest on Linux is similar for both (~225–275 MB under WSLg) and above the Android home budget; a
+  desktop memory budget does not exist in section 7 and should be added.
