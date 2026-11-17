@@ -88,3 +88,24 @@ Findings:
 * First run with no user profile: `lok_init` ~190 ms instead of ~100 ms, profile 616 KB. Not a concern.
 * The desktop install size says nothing about the Android module budget (≤ 120 MB); that is measured in WP6
   with a stripped, feature-trimmed Android build.
+
+## WP6 (part 1) — LibreOffice Android engine build
+
+`lo-android/` · LibreOffice 26.8.2.2 source, aarch64, NDK 28.2, Docker (Ubuntu 24.04), `--with-distro=
+LibreOfficeAndroidAarch64` + the removals in `LICENSE_AUDIT.md` · 16-core host, ~1 h total build (incl. one
+resume after an interruption).
+
+| Metric | Result |
+|---|---|
+| `liblo-native-code.so` (stripped, all engine code in one library) | 194.6 MB |
+| Engine payload in the APK: native libraries + assets, deflate (APK / F-Droid download) | 83.1 MB (lib 80.5 + assets 2.6) |
+| Same native library, xz -9 (indication for store-side compression) | 44.8 MB |
+| Engine payload installed (uncompressed) | ~211 MB |
+| LibreOffice's own viewer app around it (Java UI, dex, resources; not used by FAI_Office) | 7.6 MB compressed |
+| Whole debug viewer APK | 90.8 MB |
+
+Budget check (section 7, office engine module ≤ 120 MB download, one ABI): **83 MB, inside the budget** before
+any trimming. Not yet tried: dropping unused filters (Visio, Publisher, CorelDraw, Apple iWork, StarOffice, …),
+the engine's own bundled PDFium (the light core already has one), and NSS (only for signatures / encryption).
+
+Not yet measured: on-device load time and memory (needs the phone, WP6 part 2).

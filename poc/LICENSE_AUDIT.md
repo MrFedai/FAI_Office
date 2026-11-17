@@ -22,7 +22,9 @@ Graphite2 upstream `LICENSE`. Classification is from the notice text, not from m
   not MPL or more liberal (poppler, GPGME, PostgreSQL, report builder, GPL icon themes, …). `MPL_SUBSET=TRUE` in
   the generated `config_host.mk`.
 * The same Android block forces CoinMP (CPL-1.0) on and ignores `--disable-coinmp`. `lo-android/build.sh` patches
-  that one line; result `ENABLE_COINMP=` (off). The product build carries the same one-line patch.
+  that one line; result `ENABLE_COINMP=` (off). A second spot, `bin/lo-all-static-libs`, adds the CoinMP
+  static libraries to the Android link unconditionally; the script wraps those lines in `ENABLE_COINMP`.
+  The product build carries both patches.
 * Also off in the result: poppler, libcmis, GPGME, MariaDB, Firebird, PostgreSQL, lpsolve, LDAP, Breakpad,
   bundled fonts, dictionaries, help. Theme: Colibre only.
 * Still in the build list, all allowed: curl (MIT-style), HSQLDB and Java WebSocket (Java side, BSD / MIT, not
@@ -37,7 +39,7 @@ Graphite2 upstream `LICENSE`. Classification is from the notice text, not from m
 | MariaDB Connector/C | LGPL-2.1 | Base: MariaDB / MySQL driver | `--disable-mariadb-sdbc` |
 | Firebird | IPL-1.0 / IDPL-1.0 (not on the allowed list) | Base: embedded database | `--disable-firebird-sdbc` |
 | lpsolve | LGPL-2.1 | Calc solver backend | `--disable-lpsolve` |
-| CoinMP | CPL-1.0 (not on the allowed list) | Calc solver backend | `--disable-coinmp` |
+| CoinMP | CPL-1.0 (not on the allowed list) | Calc solver backend | `--disable-coinmp`; on Android two patches, see above |
 | Solver for Nonlinear Programming | LGPL-3 | Calc extension (Java) | `--without-java` |
 | Pentaho Reporting, Flute, SAC, beanshell, Rhino, HSQLDB, Java WebSocket | LGPL-2.1 / W3C / Apache / MPL / BSD | Java-only parts: Base reports, scripting, old DB | `--without-java`, `--disable-report-builder`, `--disable-scripting-beanshell`, `--disable-scripting-javascript` |
 | Culmus fonts | GPL-2 (font exception) | Hebrew fonts | `--without-fonts` (FAI_Office bundles its own font set, section 6; Hebrew from Alef / Libre Hebrew, OFL) |
@@ -85,3 +87,19 @@ LLVM), simdutf (Apache-2.0 / MIT), zlib.
 * MPL-2.0 file-level copyleft: changes to MPL files of LibreOffice or other MPL components are published as
   source. FAI_Office is MPL-2.0 itself, so this costs nothing.
 * FreeType FTL requires a credit line in the documentation.
+
+## Android build output check (WP6, 2026-11-17)
+
+Checked on the built `liblo-native-code.so` and the build tree, not on configure flags:
+
+* Unpacked and built third-party sources (`workdir/UnpackedTarball/`): no poppler, GPGME, libassuan,
+  libgpg-error, CoinMP, lpsolve, MariaDB, Firebird, PostgreSQL, libcmis, OpenLDAP, Python, dictionaries, fonts.
+* Text search in the library: no poppler, GPGME, MariaDB, lpsolve, libcmis, LDAP identifiers. The only hits for
+  CoinMP and Firebird are service-name constants (`com.sun.star.comp.Calc.CoinMPSolver`, `sdbc:firebird:`), no code.
+* Android-only components not in the desktop notice, all allowed: cairo (MPL-1.1 chosen from LGPL-2.1 / MPL-1.1,
+  same written justification as Hunspell), pixman (MIT), fontconfig (MIT-style), libexttextcat (BSD-3).
+* Present and allowed as listed above: Hunspell, Hyphen, MyThes, Graphite2, HarfBuzz, ICU, NSS, OpenSSL, curl,
+  PDFium, and the MPL-2.0 import libraries.
+
+Result: **the LibreOffice engine candidate passes the section 11 license gate on Android**, with the two CoinMP
+patches in `lo-android/build.sh`.

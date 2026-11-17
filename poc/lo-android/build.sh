@@ -14,14 +14,23 @@ SDK=${ANDROID_HOME:-$HOME/dev/android-sdk}
 NDK=$(ls -d "$SDK"/ndk/2[7-9]* | sort -V | tail -1)
 mkdir -p out "$TAR"
 cp autogen.input "$SRC/autogen.input"
-# The Android block of configure.ac forces CoinMP (CPL-1.0, not allowed by section 11) on; turn it off.
-python3 - "$SRC/configure.ac" <<'PY'
+# CoinMP (CPL-1.0) is not allowed by section 11. The Android block of configure.ac forces it on; turn it off.
+python3 - "$SRC/configure.ac" "$SRC/bin/lo-all-static-libs" <<'PY'
 import re, sys
 p = sys.argv[1]; s = open(p).read()
 a = s.index('_os=Android'); b = s.rindex('enable_coinmp=', 0, a)
 if s[b:b + 18] == 'enable_coinmp=yes\n':
     open(p, 'w').write(s[:b] + 'enable_coinmp=no  # FAI_Office: CoinMP is CPL-1.0\n' + s[b + 18:])
     print('patched configure.ac: Android CoinMP off')
+# bin/lo-all-static-libs links CoinMP into the Android .so unconditionally; make it follow ENABLE_COINMP.
+p = sys.argv[2]; s = open(p).read()
+old = '    # coinmp not used for iOS\n'
+if old in s and 'FAI_Office' not in s:
+    a = s.index(old); b = s.index('    ;;', a)
+    body = ''.join('    ' + l + '\n' for l in s[a + len(old):b].splitlines())
+    open(p, 'w').write(s[:a] + old + '    if test "$ENABLE_COINMP" = TRUE; then  # FAI_Office: CoinMP is optional\n'
+                       + body + '    fi\n' + s[b:])
+    print('patched bin/lo-all-static-libs: CoinMP only when enabled')
 PY
 echo "[1/3] docker image"
 docker build -q -t fai-lo-android --build-arg UID="$(id -u)" . >/dev/null

@@ -13,7 +13,7 @@ output are not committed; they live under `~/dev/cache/fai-office/` and each PoC
 | 3 | Seed corpus: freely redistributable PDF, DOCX, XLSX, PPTX | 5 | LibreOffice (local) | done (seed) |
 | 4 | Office engine (LibreOfficeKit) opens DOCX / XLSX / PPTX on Linux | 15.2 | LibreOffice (local) + LOK headers | done |
 | 5 | Flutter shell shows PDFium tiles on Android | 15.1, 15.4 | real Android device (owner connects one) | waiting for device |
-| 6 | Office engine on Android as a separate module | 15.2, 3 | LibreOffice Android build (hours) | building (`lo-android/`) |
+| 6 | Office engine on Android as a separate module | 15.2, 3 | LibreOffice Android build (hours) | built + license-checked; on-device test waits for the phone |
 | 7 | Office engine as WASM in a browser: size, load time, memory | 15.3, 9 | WASM build of LibreOffice | |
 | 8 | Second shell candidate for comparison (Compose Multiplatform) | 12, 15 | — | |
 | 9 | License audit of LibreOffice bundled externals | 11 | — | done (`LICENSE_AUDIT.md`), build check in WP6 |
