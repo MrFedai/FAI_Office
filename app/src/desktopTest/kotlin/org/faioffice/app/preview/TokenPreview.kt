@@ -56,7 +56,6 @@ fun TokenPreview(themeLabel: String) {
 
 @Composable
 private fun DesktopPreview(themeLabel: String) {
-    val c = FaiTheme.colors
     Column(Modifier.fillMaxSize()) {
         TopBar("FAI Office", themeLabel, FaiSize.desktopTopBar)
         Row(Modifier.weight(1f).fillMaxWidth()) {
@@ -66,22 +65,25 @@ private fun DesktopPreview(themeLabel: String) {
                 horizontalArrangement = Arrangement.spacedBy(FaiSpace.gap),
             ) {
                 Column(Modifier.weight(1f).fillMaxHeight()) {
-                    Card("Renkler · Colours", Modifier.weight(1f)) { Palette(withHex = true) }
+                    Card("Renkler · Colours", Modifier.weight(1f)) { Palette(Modifier.weight(1f)) }
                 }
                 Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(FaiSpace.gap)) {
-                    Card("Dosya türleri · File types") { FileTypes(columns = 2) }
-                    Card("Yazı ölçeği · Type scale", Modifier.weight(1f)) { TypeScale() }
+                    Card("Dosya türleri · File types") { FileTypes(columns = 2, withEnglish = true) }
+                    Card("Yazı ölçeği · Type scale", Modifier.weight(1f)) { TypeScale(Modifier.weight(1f)) }
                 }
                 Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(FaiSpace.gap)) {
-                    Card("Belge görünümü · Document view") { Controls(); Surfaces() }
+                    Card("Belge görünümü · Document view") {
+                        Controls(phone = false)
+                        Surfaces()
+                    }
                     Card("Son dosyalar · Recent files", Modifier.weight(1f)) { RecentFiles(recent) }
                 }
             }
         }
-        Box(Modifier.fillMaxWidth().height(FaiSize.border).background(c.border))
     }
 }
 
+/** Phone: the page scrolls in the app; the shot keeps to one screen, so the palette is shown on desktop only. */
 @Composable
 private fun PhonePreview(themeLabel: String) {
     Column(Modifier.fillMaxSize()) {
@@ -90,11 +92,10 @@ private fun PhonePreview(themeLabel: String) {
             Modifier.weight(1f).fillMaxWidth().padding(FaiSpace.mobilePad),
             verticalArrangement = Arrangement.spacedBy(FaiSpace.mobileGap),
         ) {
-            Card("Belge görünümü · Document view", compact = true) { Controls() }
-            Card("Dosya türleri · File types", compact = true) { FileTypes(columns = 2) }
-            Card("Son dosyalar · Recent files", compact = true) { RecentFiles(recent.take(2)) }
-            Card("Yazı ölçeği · Type scale", compact = true) { TypeScale(short = true) }
-            Card("Renkler · Colours", Modifier.weight(1f), compact = true) { Palette(withHex = false) }
+            Card("Belge görünümü", compact = true) { Controls(phone = true) }
+            Card("Dosya türleri", compact = true) { FileTypes(columns = 2, withEnglish = false) }
+            Card("Yazı ölçeği", compact = true) { TypeScale(short = true) }
+            Card("Son dosyalar", compact = true) { RecentFiles(recent.take(1)) }
         }
         BottomBar()
     }
@@ -214,37 +215,28 @@ private fun Pill(
 }
 
 @Composable
-private fun Palette(withHex: Boolean) {
+private fun Palette(modifier: Modifier) {
     val c = FaiTheme.colors
-    val all = paletteOf(c)
-    FlowRow(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(FaiSpace.s8),
-        verticalArrangement = Arrangement.spacedBy(FaiSpace.s6),
-        maxItemsInEachRow = if (withHex) 2 else 3,
-    ) {
-        all.forEach { (name, color) ->
+    val shape = RoundedCornerShape(FaiSpace.s4)
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween) {
+        paletteOf(c).forEach { (name, color) ->
             Row(
-                Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(FaiSpace.s6),
+                horizontalArrangement = Arrangement.spacedBy(FaiSpace.s10),
             ) {
-                val swatch = if (withHex) FaiSize.icon else FaiSize.iconSmall
-                Box(
-                    Modifier.size(swatch).clip(RoundedCornerShape(FaiSpace.s4)).background(color)
-                        .border(FaiSize.border, c.border2, RoundedCornerShape(FaiSpace.s4)),
-                )
-                BasicText(name, Modifier.weight(1f), style = FaiTheme.type.label.copy(color = c.text2), maxLines = 1)
-                if (withHex) {
-                    BasicText(hex(color), style = FaiTheme.type.numberSmall.copy(color = c.muted))
-                }
+                Box(Modifier.size(FaiSize.icon).clip(shape).background(color).border(FaiSize.border, c.border2, shape))
+                BasicText(name, Modifier.weight(1f), style = FaiTheme.type.body.copy(color = c.text2), maxLines = 1)
+                BasicText(hex(color), style = FaiTheme.type.number.copy(color = c.muted))
             }
         }
     }
 }
 
 @Composable
-private fun FileTypes(columns: Int) {
+private fun FileTypes(
+    columns: Int,
+    withEnglish: Boolean,
+) {
     val c = FaiTheme.colors
     FlowRow(
         Modifier.fillMaxWidth(),
@@ -259,9 +251,11 @@ private fun FileTypes(columns: Int) {
                 horizontalArrangement = Arrangement.spacedBy(FaiSpace.s8),
             ) {
                 FileBadge(kind)
-                Column {
-                    BasicText(kind.tr, style = FaiTheme.type.body.copy(color = c.text), maxLines = 1)
-                    BasicText(kind.en, style = FaiTheme.type.small.copy(color = c.muted), maxLines = 1)
+                Column(Modifier.weight(1f)) {
+                    BasicText(kind.tr, style = FaiTheme.type.body.copy(color = c.text), maxLines = 1, overflow = ell)
+                    if (withEnglish) {
+                        BasicText(kind.en, style = FaiTheme.type.small.copy(color = c.muted), maxLines = 1, overflow = ell)
+                    }
                 }
             }
         }
@@ -281,18 +275,25 @@ private fun FileBadge(kind: FileKind) {
 }
 
 @Composable
-private fun TypeScale(short: Boolean = false) {
+private fun TypeScale(
+    modifier: Modifier = Modifier,
+    short: Boolean = false,
+) {
     val c = FaiTheme.colors
-    val styles = FaiTheme.type.all.entries.toList()
-    Column(verticalArrangement = Arrangement.spacedBy(if (short) FaiSpace.s2 else FaiSpace.s6)) {
+    val styles = FaiTheme.type.all.entries.filter { !short || it.key !in setOf("button", "numberSmall", "body") }
+    Column(modifier, verticalArrangement = if (short) Arrangement.spacedBy(FaiSpace.s4) else Arrangement.SpaceEvenly) {
         styles.forEach { (name, style) ->
             val mono = name == "hero" || name.startsWith("number")
-            val sample =
+            val samples =
                 when {
-                    name == "hero" -> "1.248 / 3.096"
-                    mono -> "12:45 · 3,8 MB · %87,5 · 1,234.56"
-                    short -> "Çevrimdışı ofis · Offline office"
-                    else -> "Çevrimdışı ofis paketi, tek uygulama · Offline-first office suite, one app"
+                    name == "hero" -> listOf("1.248 / 3.096")
+                    mono -> listOf("12:45 · 3,8 MB · %87,5 · 1,234.56")
+                    short -> listOf("Çevrimdışı ofis · Offline office")
+                    else ->
+                        listOf(
+                            "Çevrimdışı ofis paketi: belge, tablo, sunum, PDF ve arşiv tek uygulamada",
+                            "Offline-first office suite: documents, spreadsheets, slides, PDF and archives",
+                        )
                 }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!short) {
@@ -302,36 +303,44 @@ private fun TypeScale(short: Boolean = false) {
                         style = FaiTheme.type.label.copy(color = c.muted),
                     )
                 }
-                BasicText(
-                    if (short) "$name · $sample" else sample,
-                    Modifier.weight(1f),
-                    style = style.copy(color = c.text),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Column(Modifier.weight(1f)) {
+                    samples.forEach { sample ->
+                        BasicText(
+                            if (short) "$name · $sample" else sample,
+                            style = style.copy(color = c.text),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun Controls() {
+private fun Controls(phone: Boolean) {
     val c = FaiTheme.colors
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(FaiSpace.s8),
         verticalArrangement = Arrangement.spacedBy(FaiSpace.s8),
     ) {
-        Button("Düzenle · Edit", c.onPrimary, c.primary, null)
-        Button("Paylaş · Share", c.text, c.surface, c.border2)
-        Button("Kaydet · Save", c.text, c.surface2, c.border, Modifier.alpha(FaiAlpha.DISABLED))
+        Button(if (phone) "Düzenle" else "Düzenle · Edit", c.onPrimary, c.primary, null)
+        Button(if (phone) "Paylaş" else "Paylaş · Share", c.text, c.surface, c.border2)
+        val disabled = Modifier.alpha(FaiAlpha.DISABLED)
+        Button(if (phone) "Kaydet" else "Kaydet · Save", c.text, c.surface2, c.border, disabled)
     }
     Row(horizontalArrangement = Arrangement.spacedBy(FaiSpace.s8)) {
-        Pill("Görüntüleme kipi · View mode", c.primaryInk, c.primarySoft)
-        Pill("Dönüştür · Convert", c.violet, c.violetSoft)
+        Pill(if (phone) "Görüntüleme kipi" else "Görüntüleme kipi · View mode", c.primaryInk, c.primarySoft)
+        Pill(if (phone) "Dönüştür" else "Dönüştür · Convert", c.violet, c.violetSoft)
     }
-    Status("✓ Kaydedildi · Saved", c.pos)
-    Status("✕ Kaydedilemedi: disk dolu · Save failed: disk full", c.neg)
-    Status("! Salt okunur, düzenlemek için kopyala · Read-only, copy to edit", c.warn)
+    if (phone) {
+        Status("✕ Kaydedilemedi: disk dolu, 120 MB yer açın", c.neg)
+    } else {
+        Status("✓ Kaydedildi · Saved", c.pos)
+        Status("✕ Kaydedilemedi: disk dolu · Save failed: disk full", c.neg)
+        Status("! Salt okunur, düzenlemek için kopyala · Read-only, copy to edit", c.warn)
+    }
 }
 
 @Composable
@@ -458,7 +467,7 @@ private val fileKinds =
         FileKind("presentation", "PPTX", "Sunumlar", "Presentations"),
         FileKind("pdf", "PDF", "PDF", "PDF"),
         FileKind("archive", "ZIP", "Arşiv", "Archive"),
-        FileKind("converter", "↔", "Dosya dönüştürücü", "File Converter"),
+        FileKind("converter", "↔", "Dönüştürücü", "File Converter"),
         FileKind("image", "PNG", "Görseller", "Images"),
     )
 
@@ -508,4 +517,20 @@ private val recent =
             "15.11.2026 11:30",
         ),
         RecentFile("archive", "Fotoğraflar_Ağustos_Tatil_Ölüdeniz.zip", "Arşiv", "246 MB", "02.09.2026 21:16"),
+        RecentFile(
+            "document",
+            "Meeting notes — Product roadmap review with the localisation team.odt",
+            "Documents › Notes",
+            "86 KB",
+            "01.09.2026 16:02",
+        ),
+        RecentFile("image", "Ekran görüntüsü 2026-08-28 çağrı kaydı.png", "Görseller › Ekran", "2,1 MB", "28.08.2026 10:44"),
+        RecentFile("spreadsheet", "Inventory_Warehouse_İzmir_Q3.csv", "Downloads", "5,6 MB", "21.08.2026 08:30"),
+        RecentFile(
+            "pdf",
+            "Kullanım Kılavuzu — Çamaşır Makinesi Model WŞ-9120 (Türkçe, 148 sayfa).pdf",
+            "İndirilenler › Kılavuzlar",
+            "12,9 MB",
+            "14.08.2026 19:58",
+        ),
     )
