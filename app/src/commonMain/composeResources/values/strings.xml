@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FAI Office</string>
+    <string name="destination_home">Home</string>
+    <string name="destination_recent_files">Recent Files</string>
+    <string name="destination_documents">Documents</string>
+    <string name="destination_presentations">Presentations</string>
+    <string name="destination_spreadsheets">Spreadsheets</string>
+    <string name="destination_pdf">PDF</string>
+    <string name="destination_file_converter">File Converter</string>
+    <string name="destination_archive">Archive</string>
+    <string name="destination_settings">Settings</string>
+    <string name="language_system">System</string>
+    <string name="language_english">English</string>
+    <string name="language_turkish">Türkçe</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+</resources>

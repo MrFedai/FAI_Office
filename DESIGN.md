@@ -21,6 +21,16 @@ Status: approved by the owner (P2.4, 2026-11-18).
 - Code: `ThemeMode { System, Light, Dark }`, `FaiTheme(mode) { … }`, colours through `FaiTheme.colors`, text through
   `FaiTheme.type` (`app/src/commonMain/kotlin/org/faioffice/app/theme/`).
 
+### Language
+
+- Strings live in `app/src/commonMain/composeResources/values/strings.xml` (English, default) and `values-tr/`; keys
+  snake_case. No user-visible literal in code.
+- Default: the system language. Override `AppLanguage { System, English, Turkish }` through `AppLanguageProvider`
+  (`LocalAppLocale`, per-platform actual); the Settings control arrives in P2.5.
+- Case conversion only through `String.uppercase(language)` / `lowercase(language)` (`core/.../text/Casing.kt`):
+  tr and az map i -> İ, ı -> I, I -> ı, İ -> i. Bare `.uppercase()` is allowed in that file only.
+- Gate: `ci/i18n.sh` (called by `ci/lint.sh`) checks literals, key parity and casing.
+
 ## 3. Colour
 
 Kit colours unchanged, except three light-theme text colours the kit gets wrong (below 4.5:1 on `bg`):

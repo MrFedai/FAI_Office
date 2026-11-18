@@ -15,4 +15,7 @@ echo "== header passed"
 echo "== tokens: generated Compose tokens match design/tokens/*.json (tools/tokens/gen_compose.py)"
 python3 tools/tokens/gen_compose.py --check
 
+echo "== i18n: string and casing gate (ci/i18n.sh)"
+bash ci/i18n.sh
+
 run_gradle lint ktlintCheck detekt

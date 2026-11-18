@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FAI Office</string>
+    <string name="destination_home">Ana sayfa</string>
+    <string name="destination_recent_files">Son dosyalar</string>
+    <string name="destination_documents">Belgeler</string>
+    <string name="destination_presentations">Sunumlar</string>
+    <string name="destination_spreadsheets">Tablolar</string>
+    <string name="destination_pdf">PDF</string>
+    <string name="destination_file_converter">Dosya dönüştürücü</string>
+    <string name="destination_archive">Arşiv</string>
+    <string name="destination_settings">Ayarlar</string>
+    <string name="language_system">Sistem</string>
+    <string name="language_english">English</string>
+    <string name="language_turkish">Türkçe</string>
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+</resources>
