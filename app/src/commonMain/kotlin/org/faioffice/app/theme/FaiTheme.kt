@@ -10,6 +10,15 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import org.faioffice.app.resources.Res
+import org.faioffice.app.resources.ibm_plex_mono_medium
+import org.faioffice.app.resources.ibm_plex_mono_regular
+import org.faioffice.app.resources.ibm_plex_sans_bold
+import org.faioffice.app.resources.ibm_plex_sans_medium
+import org.faioffice.app.resources.ibm_plex_sans_regular
+import org.faioffice.app.resources.ibm_plex_sans_semibold
+import org.jetbrains.compose.resources.Font
 
 /** Theme choice. [System] follows the platform (Android 10+, desktop, browser) and is the default. */
 enum class ThemeMode { System, Light, Dark }
@@ -33,10 +42,25 @@ object FaiTheme {
         get() = localFaiType.current
 }
 
-/**
- * Provides the design tokens to [content]. Fonts: IBM Plex Sans and Mono once bundled (DESIGN.md, fonts);
- * until then the platform sans and monospace families.
- */
+/** IBM Plex Sans, bundled subset (DESIGN.md section 4, fonts). */
+@Composable
+private fun plexSans(): FontFamily =
+    FontFamily(
+        Font(Res.font.ibm_plex_sans_regular, FontWeight.Normal),
+        Font(Res.font.ibm_plex_sans_medium, FontWeight.Medium),
+        Font(Res.font.ibm_plex_sans_semibold, FontWeight.SemiBold),
+        Font(Res.font.ibm_plex_sans_bold, FontWeight.Bold),
+    )
+
+/** IBM Plex Mono, bundled subset, for numbers (sizes, counts, dates). */
+@Composable
+private fun plexMono(): FontFamily =
+    FontFamily(
+        Font(Res.font.ibm_plex_mono_regular, FontWeight.Normal),
+        Font(Res.font.ibm_plex_mono_medium, FontWeight.Medium),
+    )
+
+/** Provides the design tokens and the bundled IBM Plex fonts to [content]. */
 @Composable
 fun FaiTheme(
     mode: ThemeMode = ThemeMode.System,
@@ -48,7 +72,9 @@ fun FaiTheme(
             ThemeMode.Light -> false
             ThemeMode.Dark -> true
         }
-    val type = remember { FaiTypography(sans = FontFamily.SansSerif, mono = FontFamily.Monospace) }
+    val sans = plexSans()
+    val mono = plexMono()
+    val type = remember(sans, mono) { FaiTypography(sans = sans, mono = mono) }
     CompositionLocalProvider(
         localFaiColors provides colorsFor(dark),
         localFaiType provides type,

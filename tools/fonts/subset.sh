@@ -5,7 +5,7 @@
 # so the UI fonts stay small.
 #
 # Usage: bash tools/fonts/subset.sh [SOURCE_DIR]
-#   SOURCE_DIR  folder with the full IBMPlexSans-*.ttf / IBMPlexMono-*.ttf and OFL-IBMPlex{Sans,Mono}.txt
+#   SOURCE_DIR  folder with the full IBMPlexSans-<weight>.ttf / IBMPlexMono-<weight>.ttf (400, 500, ...) and OFL-IBMPlex{Sans,Mono}.txt
 #               (default: ~/PROJECTS/FAI_Downloader/assets/fonts)
 # Tool: fonttools (MIT) in ~/dev/venv-fonttools, created on first run.
 set -euo pipefail
@@ -26,12 +26,12 @@ FEATURES="kern,liga,calt,ccmp,locl,mark,mkmk,tnum,lnum,case"
 
 # source file : output name
 FONTS=(
-    "IBMPlexSans-Regular.ttf:ibm_plex_sans_regular.ttf"
-    "IBMPlexSans-Medium.ttf:ibm_plex_sans_medium.ttf"
-    "IBMPlexSans-SemiBold.ttf:ibm_plex_sans_semibold.ttf"
-    "IBMPlexSans-Bold.ttf:ibm_plex_sans_bold.ttf"
-    "IBMPlexMono-Regular.ttf:ibm_plex_mono_regular.ttf"
-    "IBMPlexMono-Medium.ttf:ibm_plex_mono_medium.ttf"
+    "IBMPlexSans-400.ttf:ibm_plex_sans_regular.ttf"
+    "IBMPlexSans-500.ttf:ibm_plex_sans_medium.ttf"
+    "IBMPlexSans-600.ttf:ibm_plex_sans_semibold.ttf"
+    "IBMPlexSans-700.ttf:ibm_plex_sans_bold.ttf"
+    "IBMPlexMono-400.ttf:ibm_plex_mono_regular.ttf"
+    "IBMPlexMono-500.ttf:ibm_plex_mono_medium.ttf"
 )
 
 mkdir -p "$OUT"

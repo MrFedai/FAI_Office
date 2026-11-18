@@ -92,11 +92,8 @@ UI fonts.
   (Turkish İ ı Ş ş Ğ ğ), common punctuation, € ₺, arrows and math signs; hinting removed. Script:
   `bash tools/fonts/subset.sh [SOURCE_DIR]` (fonttools, MIT, in `~/dev/venv-fonttools`), output
   `app/src/commonMain/composeResources/font/` with the OFL texts beside the fonts.
-- **Not bundled yet:** the P2.4 run could not read the source TTFs outside its worktree. Until the script runs, the
-  theme uses the platform sans and monospace families (one switch in `FaiTheme.kt`).
-- Expected size (estimate from Plex glyph counts, to be replaced by the script's measurement): about 40 KB per
-  subset face, ≈ 240 KB for six faces, ≈ 130 KB gzip. That is < 1 % of the Android 30 MB budget and ≈ 2.6 % of the
-  Web 5 MB budget.
+- Measured (subset script, 18.11.2026): six faces 779 KB → 225 KB uncompressed, 102 KB gzip (-9). That is < 1 % of
+  the Android 30 MB budget and ≈ 2 % of the Web 5 MB budget.
 
 ## 5. Spacing, radius, size
 

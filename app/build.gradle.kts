@@ -14,6 +14,8 @@ kotlin {
     jvmToolchain(17)
     android {
         namespace = "org.faioffice.app"
+        // Compose resources (fonts) must reach the Android assets of the KMP library.
+        androidResources.enable = true
         compileSdk =
             libs.versions.android.compileSdk
                 .get()
@@ -36,6 +38,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
         }
         named("desktopMain") {
             dependencies { implementation(compose.desktop.currentOs) }
@@ -51,6 +54,12 @@ kotlin {
 val bakisDir = layout.buildDirectory.dir("bakis")
 tasks.withType<Test>().configureEach {
     systemProperty("bakis.dir", bakisDir.get().asFile.absolutePath)
+}
+
+// Bundled fonts (composeResources/font, DESIGN.md section 4); Res stays internal to :app.
+compose.resources {
+    packageOfResClass = "org.faioffice.app.resources"
+    publicResClass = false
 }
 
 compose.desktop {
