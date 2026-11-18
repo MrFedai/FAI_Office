@@ -1,0 +1,12 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+local.properties
+# IDE
+.idea/
+*.iml
+# Signing material never enters the repository
+*.jks
+*.keystore
+key.properties

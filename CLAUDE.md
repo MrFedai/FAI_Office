@@ -3,12 +3,12 @@
 Ücretsiz, açık kaynak (MPL-2.0), çevrimdışı öncelikli ofis paketi: belge, tablo, sunum, PDF, görüntüleme, dönüştürme,
 arşiv; hepsi tek uygulamada. Platform sırası: Android, Linux, Web, Windows, iOS, macOS.
 Ortak kurallar (yanıt tarzı, çalışma, kesin kurallar, model / işçi, graphify): `~/.claude/CLAUDE.md` (`~/PROJECTS/claude-ortak`).
-Burada yalnız bu projenin farkı. Arayüz kodu henüz yok; `DESIGN.md` kabuk çatısı seçilince (Faz 2) yazılır.
+Burada yalnız bu projenin farkı. Kabuk: Compose Multiplatform (Faz 2, `PHASE2_PLAN.md`); `DESIGN.md` P2.4'te yazılır.
 
 **Tek uygulama:** Writer, Sheets, Slides, PDF ayrı uygulama olmaz; ağır Office motoru ayrı modül, gerektiğinde yüklenir.
 **Lisans:** AGPL, yalnız-GPL ve özgür olmayan bağımlılık eklenmez (`MASTER_SPEC.md` bölüm 11).
 **Bulut yok:** hesap, reklam, abonelik, ücretli servis, sunucuda belge işleme yok.
-**Faz 1 onaylanmadan ürün kodu yazılmaz;** deneme kodu yalnız `poc/` altında.
+**Faz 1 onaylandı (18.11.2026);** ürün kodu `app/`, `core/`, `androidApp/`; `poc/` yalnız referans, ürün yapısına girmez.
 Plan ve kararlar: `MASTER_SPEC.md` (bölüm 0 = kilitli kararlar). Durum notu: `~/fai_notes/FAI_Office_DURUM.md`
 (oturum başında oku, sonunda güncelle).
 
@@ -16,5 +16,10 @@ Plan ve kararlar: `MASTER_SPEC.md` (bölüm 0 = kilitli kararlar). Durum notu: `
 - Geliştirme dalı `dev`; `main`'e commit ve `v*` etiketi yok (yayın kullanıcıda).
 - Desteklenen biçim / özellik iddiası yalnız testi geçince uyumluluk tablosuna yazılır.
 
+- Her kaynak dosyası MPL-2.0 başlığıyla başlar (`core/src/commonMain/.../AppInfo.kt`'deki iki satır).
+- Sürümler yalnız `gradle/libs.versions.toml`'da; Android `minSdk 29`, yalnız `arm64-v8a`.
+
 ## Araçlar
 - Depo temizliği: `clear.sh` (listeler, y/N sorar).
+- Derleme: `source ~/dev/env.sh` sonra `./gradlew check :androidApp:assembleDebug :app:createDistributable :app:wasmJsBrowserDistribution`.
+  Çalıştır: masaüstü `./gradlew :app:run`, Web `./gradlew :app:wasmJsBrowserDevelopmentRun` (COOP/COEP başlıklı).
