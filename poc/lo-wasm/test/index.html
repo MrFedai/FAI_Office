@@ -20,8 +20,20 @@ new BroadcastChannel('fai').onmessage = e => {
     else put('finished', true);
   }
 };
+// The corpus is written into the file system from this (browser main) thread: with PROXY_TO_PTHREAD the real
+// MEMFS lives here, and FS.writeFile inside the engine worker only touches that worker's private copy.
+const FAI_DOCS = ['typical-20p.docx', 'typical.xlsx', 'typical.pptx'];
 var Module = { arguments: ['--headless', '--norestore'] };
+Promise.all(FAI_DOCS.map(n => fetch('docs/' + n).then(r => r.arrayBuffer()))).then(bufs => {
+  Module.preRun = [() => {
+    const fs = Module.faiFS();
+    try { fs.mkdir('/tmp'); } catch {}
+    FAI_DOCS.forEach((n, i) => fs.writeFile('/tmp/' + n, new Uint8Array(bufs[i])));
+  }];
+  const s = document.createElement('script');
+  s.src = 'soffice.js';
+  document.body.appendChild(s);
+});
 </script>
-<script src="soffice.js"></script>
 </body>
 </html>

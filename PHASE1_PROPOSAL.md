@@ -8,16 +8,16 @@ Measurement devices: Android numbers come from a **Samsung Galaxy A55** (Exynos 
 1080x2340 at 120 Hz), which is **not** the 4 GB reference device of section 7. Linux numbers come from a
 development PC under WSLg. Both limits are repeated where they matter.
 
-Pending: the office engine as WebAssembly (WP7) is building; section 8 and the Web parts of sections 1, 7 and 10
-are filled in when it is measured.
+The office engine as WebAssembly (WP7) is measured untrimmed (opens documents; start time is the problem); the
+trimmed engine and a mid-range laptop are still open.
 
 ---
 
 ## Summary
 
 * **Engines: both candidates pass.** PDFium and LibreOffice core (through LibreOfficeKit) work on Android, Linux
-  and in the browser (PDFium; LibreOffice in the browser pending), meet every measured time budget with a wide
-  margin, and pass the section 11 license gate.
+  and in the browser, meet every measured time budget with a wide margin, and pass the section 11 license gate.
+  In the browser LibreOffice opens documents in ~0.5 s but needs ~12 s to start and a 1 GB heap (section 10).
 * **The office engine must run in its own process.** LibreOfficeKit does not give memory back when documents
   close and cannot be torn down in-process. On Android, an engine process that ends when idle returns all of its
   ~220 MB; this is how "idle engines are unloaded" (section 3) is met.
@@ -179,7 +179,7 @@ processing. Office scope on Web depends on WP7 (section 10).
 | RAM while viewing a PDF | ≤ 300 MB | peak PSS while scrolling 101 pages: Compose 319, Flutter 392, Flutter-Skia 303 — dominated by the PoC's 12-page full-bitmap cache | **confirm 300 MB** plus a viewer rule: decoded page/tile cache ≤ 64 MB, one copy (GPU only) |
 | RAM while editing a typical document | ≤ 600 MB | viewing: engine process 209–228 MB + UI 93–109 MB; editing not measured | keep 600 MB; measure in Phase 7 |
 | Web initial load, light core, compressed | ≤ 5 MB | Compose 4.06 MB (+ PDFium 2.4 MB on first PDF), Flutter Wasm 2.19 MB (4.6 MB with PDFium) | **confirm 5 MB**, PDFium excluded from the initial load |
-| Web office engine download | measure | 76.8 MB gzip (untrimmed; ~55–60 MB after font/UI trimming); UNO ready in 11.4 s locally; >1 GB memory; document open not yet working | *propose* ≤ 60 MB gzip, loaded only on demand; scope decision below |
+| Web office engine download | measure | 76.8 MB gzip (untrimmed; ~55–60 MB after font/UI trimming, estimated); engine start 11.9–12.3 s locally; DOCX 0.5 s + 0.3 s layout, XLSX 0.5 s, PPTX 0.4–0.9 s once started; 1 GB fixed heap | *propose* ≤ 60 MB gzip, loaded only on demand; scope decision below |
 | *new:* Linux package, light core | — | shell only: Compose 115 MB (JVM 77 MB), Flutter 22 MB | *propose* ≤ 150 MB installed, after a native-Linux measurement |
 | *new:* Desktop RAM at rest | — | ~225–275 MB under WSLg (not representative) | *propose* after a native-Linux measurement |
 
@@ -247,9 +247,18 @@ memory.
 
 ### Office engine delivery on Web
 
-WP7 part 1 (`poc/RESULTS.md`): the engine starts in the browser (76.8 MB gzip, 11.4 s to UNO ready, >1 GB memory); opening a document via JS UNO still fails. Options: (a) full LibreOffice WASM engine fetched on first office document
-and cached; (b) reduced office scope on Web (view-only, or Writer only via `--with-wasm-module=writer`) with the
+WP7 (`poc/RESULTS.md`, parts 1–2): the untrimmed engine is 76.8 MB gzip, needs ~12 s to start on a 16-core
+desktop (files local, no network) and reserves a fixed 1 GB heap. Once started it opens the typical DOCX in
+0.5 s (+ 0.3 s full layout), the XLSX in 0.5 s and the PPTX in 0.4–0.9 s. Page start to the first DOCX laid out:
+12.8–13.1 s. Start time and memory, not document handling, are the obstacle; R3 is not met as built.
+
+Options: (a) full LibreOffice WASM engine fetched on first office document and cached, after the user sees size
+and wait; (b) reduced office scope on Web (view-only, or Writer only via `--with-wasm-module=writer`) with the
 compatibility matrix saying so; a server fallback is not an option (section 9).
+
+*Recommendation:* plan (a), gated by R3 before R5: trim the engine (product fonts, no UI definitions), try a
+Writer-only module and a smaller initial heap, and measure on a mid-range laptop. If the trimmed engine still
+misses R3, ship (b) on Web. The Web light core (PDF, viewers, archive) is unaffected either way.
 
 ### Linux packaging
 
@@ -269,7 +278,7 @@ always-available offline build. Not measured; to be validated in Phase 2 CI.
 |---|---|---|---|
 | R1 | Shell memory on the 4 GB reference phone | Go if Home PSS ≤ 150 MB and PDF viewing ≤ 300 MB on that phone | open: phone not yet available |
 | R2 | Office engine size grows with fonts / filters | Go if the engine module stays ≤ 120 MB download per ABI | 81–83 MB measured |
-| R3 | Office engine in the browser is too large or slow | Go for full office scope on Web if the trimmed engine is ≤ 60 MB gzip, opens the typical DOCX in ≤ 10 s on a mid laptop and stays < 1.5 GB; otherwise reduced scope | engine starts (76.8 MB, 11.4 s, >1 GB); document open not working yet |
+| R3 | Office engine in the browser is too large or slow | Go for full office scope on Web if the trimmed engine is ≤ 60 MB gzip, opens the typical DOCX in ≤ 10 s on a mid laptop and stays < 1.5 GB; otherwise reduced scope | **not met as built:** 76.8 MB gzip, first DOCX laid out after 12.8–13.1 s on a 16-core desktop (engine start ~12 s, open 0.5 s + layout 0.3 s), 1 GB fixed heap; XLSX 0.5 s, PPTX 0.4–0.9 s; trimmed engine and mid laptop not measured |
 | R4 | Play on-demand delivery of a ~200 MB native library | Go if a `bundletool` local test installs the engine module on demand and it starts | not tested |
 | R5 | Fidelity on Microsoft-produced documents | Go for R1 if ≥ 95 % of the corpus passes Level 1 thresholds | corpus not built |
 | R6 | Engine process IPC latency for editing | Go for R2 if a tile round trip after a key press is ≤ 50 ms on the reference phone | not measured |
@@ -305,4 +314,5 @@ Phases 4 and 5 can run in parallel after 3. Nothing from Phase 7 onward may dela
    budgets (Linux package, desktop RAM, scroll janky frames).
 3. Linux packaging: Flatpak + extension, plus a full AppImage.
 4. Acquire the 4 GB reference phone (exact model to be fixed) before Phase 2.
-5. Office scope on Web: decided after WP7 (pending).
+5. Office scope on Web: full engine on demand if the trimmed engine passes R3 before R5 (recommended), otherwise
+   reduced scope (section 10).

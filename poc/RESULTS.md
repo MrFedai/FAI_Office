@@ -301,8 +301,43 @@ Android, default fonts · 65 min build on the 16-core host · headless Chromium,
 | Total first download | **76.8 MB gzip** |
 | Page start → UNO ready (local server, no network time) | **11.4 s** |
 | WASM memory / browser-reported memory after start | 1 024 MB / 2 180 MB |
-| Open DOCX / XLSX / PPTX through `loadComponentFromURL` | **not yet working**: `IllegalArgumentException` (likely the `_blank` target in headless mode; next try `_default` or a `Hidden` argument) |
+| Open DOCX / XLSX / PPTX through `loadComponentFromURL` | works after the fix in part 2 below |
 
 Trimming already visible: replacing the default fonts with the product set (8 MB) and dropping the UI definitions
 (as the Android "strippedUI" build does) would take `soffice.data` from ~93 MB to ~20 MB raw. Even then the engine
 is ~55–60 MB gzip with a ~11 s start and >1 GB memory: far heavier than the 5 MB light core.
+
+## WP7 (part 2) — opening documents in the browser engine
+
+Same build and harness (`lo-wasm/test/`), no rebuild; 2 runs on 2026-11-18, both shown. Documents opened with
+`loadComponentFromURL` and `Hidden=true`, then closed; Writer's view `PageCount` is read after loading, which
+forces the full layout and is timed separately.
+
+Cause of the part-1 failure: not the frame target (`_default` failed the same way). The engine runs with
+`PROXY_TO_PTHREAD`, so the real in-memory file system lives on the browser main thread; `FS.writeFile` called
+inside the engine worker only wrote the worker's private copy and the engine saw no file. The page now writes the
+corpus into `/tmp` from the main thread (`preRun`) before the engine starts.
+
+| Step (local server, no network time) | Run 1 | Run 2 |
+|---|---|---|
+| Page start → UNO ready | 12.3 s | 11.9 s |
+| New empty Writer document (`private:factory/swriter`) | 223 ms | 281 ms |
+| `example.odt` from the engine's own file image | 152 ms | 181 ms |
+| Typical 20-page DOCX, first open (20 pages) | **495 ms** + full layout 332 ms | **508 ms** + 346 ms |
+| Typical XLSX (2 sheets) | **496 ms** | **511 ms** |
+| Typical PPTX (12 slides) | **431 ms** | **887 ms** |
+| Typical 20-page DOCX, second open | 182 ms + layout 285 ms | 259 ms + 298 ms |
+| Page start → typical DOCX opened and laid out | **13.1 s** | **12.8 s** |
+| WASM heap | 1 024 MB (fixed) | 1 024 MB |
+
+* **Once the engine is up, documents open in about half a second** (DOCX 0.5 s + 0.3 s layout, XLSX 0.5 s,
+  PPTX 0.4–0.9 s): close to the Linux native times of WP4 (0.3–0.6 s cold) and inside the 5 s / 2 s DOCX
+  budgets.
+* **The cost is the start**: ~12 s of engine start (on a 16-core desktop, files served locally) dominates the
+  first document; with the 76.8 MB download on a 50 Mbit/s line add ~12 s more. A cached second visit still pays
+  the ~12 s start.
+* Memory: the heap is a fixed 1 GB block reserved at start. `measureUserAgentSpecificMemory` reports 2.2 GB
+  before and 4.25 GB after the documents; it most likely counts the shared heap once per engine thread, so it is
+  not used as a figure.
+* Not measured yet: the trimmed engine (product fonts, no UI definitions, Writer-only module), a mid-range
+  laptop, rendering a page to the screen (only load + layout here).
