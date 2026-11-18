@@ -116,7 +116,7 @@ at 390x844 and 1920x950; no hard-coded colour or size (lint rule).
 
 Depends on: P2.4; the R1 gate.
 
-### P2.6 Localisation EN / TR
+### P2.6 Localisation EN / TR — YAPILDI (dev 7c1f203)
 
 Efor: medium
 
