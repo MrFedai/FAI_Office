@@ -16,7 +16,7 @@ output are not committed; they live under `~/dev/cache/fai-office/` and each PoC
 | 6 | Office engine on Android as a separate module | 15.2, 3 | LibreOffice Android build (hours) | done: built, license-checked, measured on the phone (`lok-android/`) |
 | 7 | Office engine as WASM in a browser: size, load time, memory | 15.3, 9 | WASM build of LibreOffice | done (`lo-wasm/`): opens DOCX / XLSX / PPTX; trimmed image (`trim.sh`) 56.7 MB, 2.1 s start; mid laptop open |
 | 8 | Second shell candidate for comparison (Compose Multiplatform) | 12, 15 | — | done: Android (`compose-pdf/`), Linux + Web (`shell-size/`) |
-| 9 | License audit of LibreOffice bundled externals | 11 | — | done (`LICENSE_AUDIT.md`), build check in WP6 |
+| 9 | License audit of LibreOffice bundled externals | 11 | — | done (`LICENSE_AUDIT.md`), build checks in WP6 (Android) and WP7 (WASM) |
 | 10 | Proposal document with the 11 deliverables of section 15 | 15 | 1–9 | |
 
 Order: 1 → 2 → 3 → 4 → 9 → 5 → 6 → 7 → 8 → 10. The cheap Linux and Web proofs come first; the hours-long

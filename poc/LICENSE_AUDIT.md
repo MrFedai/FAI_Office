@@ -103,3 +103,30 @@ Checked on the built `liblo-native-code.so` and the build tree, not on configure
 
 Result: **the LibreOffice engine candidate passes the section 11 license gate on Android**, with the two CoinMP
 patches in `lo-android/build.sh`.
+
+## OpenSymbol font (checked 2026-11-18)
+
+* Bundled with both engines (Android: part of LibreOffice's own fonts; Web: kept in the WP7 trimmed set) for
+  bullets, numbering symbols and math characters.
+* Not a third-party component: it is built from `extras/source/truetype/symbol/OpenSymbol.sfd` in the LibreOffice
+  core repository (the build fetches the matching `opens___.ttf`, pinned by SHA-256 in `download.lst`, when
+  FontForge is not available). That is why LibreOffice's notice file has no separate OpenSymbol section.
+* The font itself carries no license string, only copyright lines (name ID 0): Sun Microsystems 2009 (the
+  OpenOffice.org original), Google 2010 (digits and a few symbols) and later individual contributors.
+* License therefore = the core repository's: MPL-2.0, with OpenOffice.org heritage under Apache-2.0.
+  **Pass.** Obligation: name OpenSymbol under the LibreOffice entry of the generated notice file, because the font
+  file does not state its license.
+
+## LibreOffice WASM build output check (WP7, 2026-11-18)
+
+* `lo-wasm/autogen.input` does not set `--enable-mpl-subset`, and unlike Android the Emscripten target does not
+  set it by itself: `MPL_SUBSET=` and `WITH_FONTS=TRUE` in the generated `config_host.mk`.
+* Off anyway through explicit switches: poppler, GPGME, MariaDB, Firebird, PostgreSQL, lpsolve, CoinMP, report
+  builder, libcmis, LDAP, Lotus Word Pro import, extra extensions, dictionaries, help. Icon theme: Colibre only.
+* Notice of the build (`instdir/LICENSE`): the only component against the policy is **Culmus** (GPL fonts),
+  present in the untrimmed file-system image (18 files). The trimmed image (`lo-wasm/trim.sh`) contains only
+  Liberation, Carlito, Caladea and OpenSymbol, so **no Culmus file is shipped there**. Hunspell, cairo and
+  liblangtag appear as on Android (MPL choice from their dual licenses).
+* Result: **the trimmed WASM engine passes the license gate.** The untrimmed PoC image would not.
+  For the product build, add `--enable-mpl-subset` and `--without-fonts` to the WASM configuration, so configure
+  enforces the subset and the notice file is generated for it, instead of relying on the trim step.

@@ -144,11 +144,11 @@ measured in Phase 6.
 |---|---|---|
 | PDFium (chromium/8111) + bundled components | BSD-3; Apache-2.0, MIT, BSD, FTL, Unicode, zlib, libpng | **pass** |
 | LibreOffice core 26.8.2 | MPL-2.0 (OpenOffice.org parts Apache-2.0) | **pass, with removals** |
-| LibreOffice bundled components that violate the policy: poppler (GPL), GPGME / libassuan / libgpg-error (LGPL), MariaDB C (LGPL), Firebird (IPL), lpsolve (LGPL), CoinMP (CPL), Java parts, Culmus fonts (GPL), GPL / LGPL / CC-BY-SA icon themes, GPL dictionaries | — | **removed** by configure switches; the Android target builds the MPL subset by itself; CoinMP needs two one-line patches (`poc/lo-android/build.sh`). Verified on the built Android library. |
+| LibreOffice bundled components that violate the policy: poppler (GPL), GPGME / libassuan / libgpg-error (LGPL), MariaDB C (LGPL), Firebird (IPL), lpsolve (LGPL), CoinMP (CPL), Java parts, Culmus fonts (GPL), GPL / LGPL / CC-BY-SA icon themes, GPL dictionaries | — | **removed** by configure switches; the Android target builds the MPL subset by itself; CoinMP needs two one-line patches (`poc/lo-android/build.sh`). Verified on the built Android library. WASM: the PoC build lacks `--enable-mpl-subset`, so its untrimmed image ships Culmus (GPL); the trimmed image does not, and the product WASM build adds `--enable-mpl-subset --without-fonts`. |
 | Hunspell, Hyphen, cairo (MPL-1.1 / LGPL / GPL choices) | MPL-1.1, upgradeable to MPL-2.0 | **pass with written justification** (needed for spell check and on Android) |
 | Liberation, Carlito, Noto fonts | OFL-1.1 | pass |
 | Caladea font | Apache-2.0 | pass |
-| OpenSymbol font (part of LibreOffice) | to confirm | **open:** bundled in the WP7 trimmed set, not yet in `poc/LICENSE_AUDIT.md` |
+| OpenSymbol font (part of LibreOffice core) | MPL-2.0 (OpenOffice.org parts Apache-2.0); the font file states no license | **pass**; named in the notice file under LibreOffice |
 | Compose Multiplatform, Kotlin, AndroidX | Apache-2.0 | pass (not yet in the notice-file audit) |
 | Flutter (alternative shell) | BSD-3 | pass |
 | libarchive (proposed) | BSD-2 | to audit in Phase 5 |
