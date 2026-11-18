@@ -8,8 +8,8 @@
 <script>
 const T0 = Date.now();
 const faiResults = { page_start: 0 };
-const out = document.getElementById('log');
-function put(k, v) { faiResults[k] = v; out.textContent = Object.entries(faiResults).map(([a, b]) => a.padEnd(28) + b).join('\n'); }
+const faiOut = document.getElementById('log');
+function put(k, v) { faiResults[k] = v; faiOut.textContent = Object.entries(faiResults).map(([a, b]) => a.padEnd(28) + b).join('\n'); }
 new BroadcastChannel('fai').onmessage = e => {
   const { k, v } = e.data;
   put(k, /_at$/.test(k) || k === 'done' ? (v - T0) + ' ms after page start' : v);

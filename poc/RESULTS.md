@@ -288,3 +288,21 @@ Findings:
   first PDF open instead of in the initial load.
 * Memory at rest on Linux is similar for both (~225–275 MB under WSLg) and above the Android home budget; a
   desktop memory budget does not exist in section 7 and should be added.
+
+## WP7 (part 1) — LibreOffice as WebAssembly in a browser
+
+`lo-wasm/` · LibreOffice 26.8.2.2, Emscripten 4.0.10, headless, Writer + Calc + Impress, policy removals as on
+Android, default fonts · 65 min build on the 16-core host · headless Chromium, local server, cross-origin isolated.
+
+| Metric | Result |
+|---|---|
+| `soffice.wasm` | 147.5 MB raw, 49.7 MB gzip -6 |
+| `soffice.data` (file-system image) | 92.9 MB raw, 27.0 MB gzip -6 — of which fonts 51 MB, LibreOffice UI definitions (`soffice.cfg`) ~29 MB |
+| Total first download | **76.8 MB gzip** |
+| Page start → UNO ready (local server, no network time) | **11.4 s** |
+| WASM memory / browser-reported memory after start | 1 024 MB / 2 180 MB |
+| Open DOCX / XLSX / PPTX through `loadComponentFromURL` | **not yet working**: `IllegalArgumentException` (likely the `_blank` target in headless mode; next try `_default` or a `Hidden` argument) |
+
+Trimming already visible: replacing the default fonts with the product set (8 MB) and dropping the UI definitions
+(as the Android "strippedUI" build does) would take `soffice.data` from ~93 MB to ~20 MB raw. Even then the engine
+is ~55–60 MB gzip with a ~11 s start and >1 GB memory: far heavier than the 5 MB light core.
