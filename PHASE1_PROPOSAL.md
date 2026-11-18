@@ -1,7 +1,6 @@
 # FAI_Office — Phase 1 Technical Architecture Proposal
 
-Status: **reviewed by the owner (2026-11-18): decisions 1–5 approved as recommended**; two Phase 1 items still
-open (reference phone model, minimum OS versions), see the end of the document. Answers MASTER_SPEC section 15. Every number below comes from a
+Status: **reviewed by the owner (2026-11-18): all decisions taken**, see the end of the document. Answers MASTER_SPEC section 15. Every number below comes from a
 proof of concept in `poc/`; raw results and method are in `poc/RESULTS.md`, the license audit in
 `poc/LICENSE_AUDIT.md`. Anything not measured is marked *proposed* or *open*.
 
@@ -384,7 +383,7 @@ Kotlin Slack thread on CMP-2279; LibreOffice `configure.ac` (26.8.2, local).
 
 ## Owner decisions at the Phase 1 review
 
-Recorded 2026-11-18. Approved as recommended: 1, 2, 3 and 5; 4 is open (model not named yet).
+Recorded 2026-11-18. Approved as recommended: 1, 2, 3 and 5; 4 and the minimum OS versions decided the same day.
 
 
 1. Shell framework: Compose Multiplatform (recommended) or Flutter.
@@ -407,9 +406,9 @@ Decided:
 * **Web office scope: full**, trimmed engine on demand; R3 is measured with the engine cached, the first-visit
   download is bounded by the 60 MB budget and shown to the user. Confirmed on a mid-range laptop before R5,
   otherwise reduced scope.
+* **Reference phone: Samsung Galaxy A17 5G, 4 GB / 128 GB** (Exynos 1330, Android 15+, sold in Turkey). Chosen
+  over Moto G (2026) and Redmi 15 5G: same vendor software as the A55 used in Phase 1, long update support. R1 is
+  measured on it before Phase 2 builds on the shell.
+* **Minimum OS versions: as proposed in section 13**, Android `minSdk 29` (chosen over 27).
 
-Still open in Phase 1 (spec sections 0 and 7):
-
-* Reference phone: exact 4 GB model to name and acquire.
-* Minimum OS versions: proposed in section 13 (Android `minSdk 29`, Chrome / Edge 119, Firefox 120, Safari 18.2,
-  Flatpak runtime + AppImage on glibc 2.35).
+Spec sections 0 (items 11–12) and 7 are updated accordingly.
