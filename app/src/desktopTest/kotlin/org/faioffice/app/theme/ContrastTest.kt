@@ -21,32 +21,43 @@ class ContrastTest {
     fun everyTextColourReachesTheMinimumOnEverySurface() {
         val failures =
             themes.flatMap { (theme, colors) ->
-                val pairs =
-                    colors.textColors.flatMap { (text, fg) ->
-                        colors.surfaces.map { (surface, bg) -> "$text on $surface" to contrast(fg, bg) }
-                    } +
-                        colors.onFill.map { (name, pair) -> name to contrast(pair.first, pair.second) } +
-                        colors.onTint.flatMap { (name, pair) ->
-                            colors.surfaces.map { (surface, bg) ->
-                                "$name over $surface" to contrast(pair.first, pair.second.compositeOver(bg))
-                            }
-                        }
-                pairs.filter { it.second < CONTRAST_MINIMUM }.map { "$theme: ${it.first} = ${"%.2f".format(it.second)}" }
+                pairsOf(colors)
+                    .filter { it.second < CONTRAST_MINIMUM }
+                    .map { "$theme: ${it.first} = ${"%.2f".format(it.second)}" }
             }
         assertTrue(failures.isEmpty(), "below $CONTRAST_MINIMUM:1\n" + failures.joinToString("\n"))
     }
 
     @Test
     fun bothThemesCheckTheSameRoles() {
-        assertEquals(FaiPalette.dark.textColors.keys, FaiPalette.light.textColors.keys)
-        assertEquals(FaiPalette.dark.surfaces.keys, FaiPalette.light.surfaces.keys)
-        assertTrue(FaiPalette.dark.fileTypes.values.all { it in FaiPalette.dark.textColors.values })
+        val dark = FaiPalette.dark
+        val light = FaiPalette.light
+        assertEquals(dark.textColors.keys, light.textColors.keys)
+        assertEquals(dark.surfaces.keys, light.surfaces.keys)
+        val darkText = dark.textColors.values
+        assertTrue(dark.fileTypes.values.all { it in darkText })
     }
 
     @Test
     fun contrastFormulaMatchesWcag() {
         assertEquals(21.0, contrast(Color.Black, Color.White), 0.001)
         assertEquals(1.0, contrast(Color.White, Color.White), 0.001)
+    }
+
+    /** Every checked pair of one theme with its ratio. */
+    private fun pairsOf(colors: FaiColors): List<Pair<String, Double>> {
+        val onSurfaces =
+            colors.textColors.flatMap { (text, fg) ->
+                colors.surfaces.map { (surface, bg) -> "$text on $surface" to contrast(fg, bg) }
+            }
+        val onFills = colors.onFill.map { (name, pair) -> name to contrast(pair.first, pair.second) }
+        val onTints =
+            colors.onTint.flatMap { (name, pair) ->
+                colors.surfaces.map { (surface, bg) ->
+                    "$name over $surface" to contrast(pair.first, pair.second.compositeOver(bg))
+                }
+            }
+        return onSurfaces + onFills + onTints
     }
 }
 

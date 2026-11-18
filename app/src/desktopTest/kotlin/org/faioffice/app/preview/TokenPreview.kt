@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +34,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import org.faioffice.app.theme.FaiAlpha
 import org.faioffice.app.theme.FaiBreakpoint
 import org.faioffice.app.theme.FaiColors
@@ -57,21 +57,24 @@ fun TokenPreview(themeLabel: String) {
 @Composable
 private fun DesktopPreview(themeLabel: String) {
     Column(Modifier.fillMaxSize()) {
-        TopBar("FAI Office", themeLabel, FaiSize.desktopTopBar)
+        TopBar("FAI Office", themeLabel)
         Row(Modifier.weight(1f).fillMaxWidth()) {
             SideNav()
             Row(
-                Modifier.weight(1f).fillMaxHeight().padding(horizontal = FaiSpace.pagePadX, vertical = FaiSpace.pagePadY),
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(horizontal = FaiSpace.pagePadX, vertical = FaiSpace.pagePadY),
                 horizontalArrangement = Arrangement.spacedBy(FaiSpace.gap),
             ) {
-                Column(Modifier.weight(1f).fillMaxHeight()) {
+                PreviewColumn {
                     Card("Renkler · Colours", Modifier.weight(1f)) { Palette(Modifier.weight(1f)) }
                 }
-                Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(FaiSpace.gap)) {
+                PreviewColumn {
                     Card("Dosya türleri · File types") { FileTypes(columns = 2, withEnglish = true) }
                     Card("Yazı ölçeği · Type scale", Modifier.weight(1f)) { TypeScale(Modifier.weight(1f)) }
                 }
-                Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(FaiSpace.gap)) {
+                PreviewColumn {
                     Card("Belge görünümü · Document view") {
                         Controls(phone = false)
                         Surfaces()
@@ -83,11 +86,20 @@ private fun DesktopPreview(themeLabel: String) {
     }
 }
 
+@Composable
+private fun RowScope.PreviewColumn(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        Modifier.weight(1f).fillMaxHeight(),
+        verticalArrangement = Arrangement.spacedBy(FaiSpace.gap),
+        content = content,
+    )
+}
+
 /** Phone: the page scrolls in the app; the shot keeps to one screen, so the palette is shown on desktop only. */
 @Composable
 private fun PhonePreview(themeLabel: String) {
     Column(Modifier.fillMaxSize()) {
-        TopBar("Ana sayfa", themeLabel, FaiSize.desktopTopBar)
+        TopBar("Ana sayfa", themeLabel)
         Column(
             Modifier.weight(1f).fillMaxWidth().padding(FaiSpace.mobilePad),
             verticalArrangement = Arrangement.spacedBy(FaiSpace.mobileGap),
@@ -102,14 +114,22 @@ private fun PhonePreview(themeLabel: String) {
 }
 
 @Composable
+private fun Line(modifier: Modifier) {
+    Box(modifier.background(FaiTheme.colors.border))
+}
+
+@Composable
 private fun TopBar(
     title: String,
     themeLabel: String,
-    height: Dp,
 ) {
     val c = FaiTheme.colors
     Row(
-        Modifier.fillMaxWidth().height(height).background(c.surface).padding(horizontal = FaiSpace.pagePadX),
+        Modifier
+            .fillMaxWidth()
+            .height(FaiSize.desktopTopBar)
+            .background(c.surface)
+            .padding(horizontal = FaiSpace.pagePadX),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(FaiSpace.s10),
     ) {
@@ -118,7 +138,7 @@ private fun TopBar(
         Spacer(Modifier.weight(1f))
         Pill(themeLabel, c.primaryInk, c.primarySoft)
     }
-    Box(Modifier.fillMaxWidth().height(FaiSize.border).background(c.border))
+    Line(Modifier.fillMaxWidth().height(FaiSize.border))
 }
 
 @Composable
@@ -126,30 +146,41 @@ private fun SideNav() {
     val c = FaiTheme.colors
     Row(Modifier.fillMaxHeight()) {
         Column(
-            Modifier.width(FaiSize.sideNav).fillMaxHeight().background(c.surface).padding(FaiSpace.s8),
+            Modifier
+                .width(FaiSize.sideNav)
+                .fillMaxHeight()
+                .background(c.surface)
+                .padding(FaiSpace.s8),
             verticalArrangement = Arrangement.spacedBy(FaiSpace.s2),
         ) {
             destinations.forEachIndexed { i, name ->
                 NavItem(name, selected = i == 0, Modifier.fillMaxWidth().height(FaiSize.control))
             }
         }
-        Box(Modifier.width(FaiSize.border).fillMaxHeight().background(c.border))
+        Line(Modifier.width(FaiSize.border).fillMaxHeight())
     }
 }
 
 @Composable
 private fun BottomBar() {
     val c = FaiTheme.colors
-    Box(Modifier.fillMaxWidth().height(FaiSize.border).background(c.border))
+    Line(Modifier.fillMaxWidth().height(FaiSize.border))
     Row(
-        Modifier.fillMaxWidth().height(FaiSize.mobileTabBar).background(c.surface).padding(FaiSpace.s4),
+        Modifier
+            .fillMaxWidth()
+            .height(FaiSize.mobileTabBar)
+            .background(c.surface)
+            .padding(FaiSpace.s4),
         horizontalArrangement = Arrangement.spacedBy(FaiSpace.s2),
     ) {
         phoneTabs.forEachIndexed { i, name ->
             val selected = i == 0
             val ink = if (selected) c.primaryInk else c.muted
             Column(
-                Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(FaiRadius.control))
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(FaiRadius.control))
                     .background(if (selected) c.primarySoft else c.surface),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(FaiSpace.s4, Alignment.CenterVertically),
@@ -170,7 +201,8 @@ private fun NavItem(
     val c = FaiTheme.colors
     val ink = if (selected) c.primaryInk else c.text2
     Row(
-        modifier.clip(RoundedCornerShape(FaiRadius.control))
+        modifier
+            .clip(RoundedCornerShape(FaiRadius.control))
             .background(if (selected) c.primarySoft else c.surface)
             .padding(horizontal = FaiSpace.s10),
         verticalAlignment = Alignment.CenterVertically,
@@ -191,7 +223,11 @@ private fun Card(
     val c = FaiTheme.colors
     val shape = RoundedCornerShape(FaiRadius.card)
     Column(
-        modifier.fillMaxWidth().clip(shape).background(c.surface).border(FaiSize.border, c.border, shape)
+        modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(c.surface)
+            .border(FaiSize.border, c.border, shape)
             .padding(if (compact) FaiSpace.mobilePad else FaiSpace.cardPad),
         verticalArrangement = Arrangement.spacedBy(if (compact) FaiSpace.s8 else FaiSpace.s12),
     ) {
@@ -208,7 +244,9 @@ private fun Pill(
 ) {
     BasicText(
         text,
-        Modifier.clip(RoundedCornerShape(FaiRadius.chip)).background(fill)
+        Modifier
+            .clip(RoundedCornerShape(FaiRadius.chip))
+            .background(fill)
             .padding(horizontal = FaiSpace.s10, vertical = FaiSpace.s4),
         style = FaiTheme.type.label.copy(color = ink),
     )
@@ -224,7 +262,13 @@ private fun Palette(modifier: Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(FaiSpace.s10),
             ) {
-                Box(Modifier.size(FaiSize.icon).clip(shape).background(color).border(FaiSize.border, c.border2, shape))
+                Box(
+                    Modifier
+                        .size(FaiSize.icon)
+                        .clip(shape)
+                        .background(color)
+                        .border(FaiSize.border, c.border2, shape),
+                )
                 BasicText(name, Modifier.weight(1f), style = FaiTheme.type.body.copy(color = c.text2), maxLines = 1)
                 BasicText(hex(color), style = FaiTheme.type.number.copy(color = c.muted))
             }
@@ -254,7 +298,7 @@ private fun FileTypes(
                 Column(Modifier.weight(1f)) {
                     BasicText(kind.tr, style = FaiTheme.type.body.copy(color = c.text), maxLines = 1, overflow = ell)
                     if (withEnglish) {
-                        BasicText(kind.en, style = FaiTheme.type.small.copy(color = c.muted), maxLines = 1, overflow = ell)
+                        BasicText(kind.en, style = FaiTheme.type.small.copy(color = c.muted), maxLines = 1)
                     }
                 }
             }
@@ -266,7 +310,9 @@ private fun FileTypes(
 private fun FileBadge(kind: FileKind) {
     val ink = FaiTheme.colors.fileTypes.getValue(kind.key)
     Box(
-        Modifier.size(FaiSize.fileBadge).clip(RoundedCornerShape(FaiRadius.control))
+        Modifier
+            .size(FaiSize.fileBadge)
+            .clip(RoundedCornerShape(FaiRadius.control))
             .background(ink.copy(alpha = FaiAlpha.FILE_TINT)),
         contentAlignment = Alignment.Center,
     ) {
@@ -280,37 +326,26 @@ private fun TypeScale(
     short: Boolean = false,
 ) {
     val c = FaiTheme.colors
-    val styles = FaiTheme.type.all.entries.filter { !short || it.key !in setOf("button", "numberSmall", "body") }
-    Column(modifier, verticalArrangement = if (short) Arrangement.spacedBy(FaiSpace.s4) else Arrangement.SpaceEvenly) {
+    val all = FaiTheme.type.all
+    val styles = if (short) all.filterKeys { it !in phoneSkippedStyles } else all
+    val arrangement = if (short) Arrangement.spacedBy(FaiSpace.s4) else Arrangement.SpaceEvenly
+    Column(modifier, verticalArrangement = arrangement) {
         styles.forEach { (name, style) ->
-            val mono = name == "hero" || name.startsWith("number")
             val samples =
                 when {
                     name == "hero" -> listOf("1.248 / 3.096")
-                    mono -> listOf("12:45 · 3,8 MB · %87,5 · 1,234.56")
-                    short -> listOf("Çevrimdışı ofis · Offline office")
-                    else ->
-                        listOf(
-                            "Çevrimdışı ofis paketi: belge, tablo, sunum, PDF ve arşiv tek uygulamada",
-                            "Offline-first office suite: documents, spreadsheets, slides, PDF and archives",
-                        )
+                    name.startsWith("number") -> listOf("12:45 · 3,8 MB · %87,5 · 1,234.56")
+                    short -> listOf("$name · Çevrimdışı ofis · Offline office")
+                    else -> longSamples
                 }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!short) {
-                    BasicText(
-                        name,
-                        Modifier.width(FaiSize.sideNav / 2),
-                        style = FaiTheme.type.label.copy(color = c.muted),
-                    )
+                    val labelStyle = FaiTheme.type.label.copy(color = c.muted)
+                    BasicText(name, Modifier.width(FaiSize.sideNav / 2), style = labelStyle)
                 }
                 Column(Modifier.weight(1f)) {
                     samples.forEach { sample ->
-                        BasicText(
-                            if (short) "$name · $sample" else sample,
-                            style = style.copy(color = c.text),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        BasicText(sample, style = style.copy(color = c.text), maxLines = 1, overflow = ell)
                     }
                 }
             }
@@ -354,7 +389,11 @@ private fun Button(
     val shape = RoundedCornerShape(FaiRadius.control)
     val outlined = if (border != null) Modifier.border(FaiSize.border, border, shape) else Modifier
     Box(
-        modifier.heightIn(min = FaiSize.touchMin).clip(shape).background(fill).then(outlined)
+        modifier
+            .heightIn(min = FaiSize.touchMin)
+            .clip(shape)
+            .background(fill)
+            .then(outlined)
             .padding(horizontal = FaiSpace.s14),
         contentAlignment = Alignment.Center,
     ) {
@@ -375,15 +414,23 @@ private fun Surfaces() {
     val c = FaiTheme.colors
     val shape = RoundedCornerShape(FaiRadius.control)
     Row(
-        Modifier.fillMaxWidth().clip(shape).background(c.bg).padding(FaiSpace.s8),
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(c.bg)
+            .padding(FaiSpace.s8),
         horizontalArrangement = Arrangement.spacedBy(FaiSpace.s8),
     ) {
-        listOf("bg" to c.bg, "surface" to c.surface, "surface2" to c.surface2, "input" to c.input).forEach { (n, s) ->
+        c.surfaces.forEach { (name, surface) ->
             Column(
-                Modifier.weight(1f).clip(shape).background(s).border(FaiSize.border, c.border, shape)
+                Modifier
+                    .weight(1f)
+                    .clip(shape)
+                    .background(surface)
+                    .border(FaiSize.border, c.border, shape)
                     .padding(FaiSpace.s8),
             ) {
-                BasicText(n, style = FaiTheme.type.label.copy(color = c.muted))
+                BasicText(name, style = FaiTheme.type.label.copy(color = c.muted))
                 BasicText("Metin · Text", style = FaiTheme.type.small.copy(color = c.text), maxLines = 1)
             }
         }
@@ -392,25 +439,31 @@ private fun Surfaces() {
 
 @Composable
 private fun RecentFiles(files: List<RecentFile>) {
-    val c = FaiTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(FaiSpace.s4)) {
         files.forEachIndexed { i, file ->
-            if (i > 0) Box(Modifier.fillMaxWidth().height(FaiSize.border).background(c.border))
-            Row(
-                Modifier.fillMaxWidth().heightIn(min = FaiSize.touchMin),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(FaiSpace.s10),
-            ) {
-                FileBadge(fileKinds.first { it.key == file.kind })
-                Column(Modifier.weight(1f)) {
-                    BasicText(file.name, style = FaiTheme.type.body.copy(color = c.text), maxLines = 1, overflow = ell)
-                    BasicText(file.where, style = FaiTheme.type.small.copy(color = c.muted), maxLines = 1, overflow = ell)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    BasicText(file.size, style = FaiTheme.type.number.copy(color = c.text2))
-                    BasicText(file.date, style = FaiTheme.type.numberSmall.copy(color = c.muted))
-                }
-            }
+            if (i > 0) Line(Modifier.fillMaxWidth().height(FaiSize.border))
+            RecentRow(file)
+        }
+    }
+}
+
+@Composable
+private fun RecentRow(file: RecentFile) {
+    val c = FaiTheme.colors
+    val type = FaiTheme.type
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = FaiSize.touchMin),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FaiSpace.s10),
+    ) {
+        FileBadge(fileKinds.first { it.key == file.kind })
+        Column(Modifier.weight(1f)) {
+            BasicText(file.name, style = type.body.copy(color = c.text), maxLines = 1, overflow = ell)
+            BasicText(file.where, style = type.small.copy(color = c.muted), maxLines = 1, overflow = ell)
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            BasicText(file.size, style = type.number.copy(color = c.text2))
+            BasicText(file.date, style = type.numberSmall.copy(color = c.muted))
         }
     }
 }
@@ -459,6 +512,14 @@ private class RecentFile(
     val size: String,
     val date: String,
 )
+
+private val phoneSkippedStyles = setOf("button", "numberSmall", "body")
+
+private val longSamples =
+    listOf(
+        "Çevrimdışı ofis paketi: belge, tablo, sunum, PDF ve arşiv tek uygulamada",
+        "Offline-first office suite: documents, spreadsheets, slides, PDF and archives",
+    )
 
 private val fileKinds =
     listOf(
@@ -524,7 +585,13 @@ private val recent =
             "86 KB",
             "01.09.2026 16:02",
         ),
-        RecentFile("image", "Ekran görüntüsü 2026-08-28 çağrı kaydı.png", "Görseller › Ekran", "2,1 MB", "28.08.2026 10:44"),
+        RecentFile(
+            "image",
+            "Ekran görüntüsü 2026-08-28 çağrı kaydı.png",
+            "Görseller › Ekran",
+            "2,1 MB",
+            "28.08.2026 10:44",
+        ),
         RecentFile("spreadsheet", "Inventory_Warehouse_İzmir_Q3.csv", "Downloads", "5,6 MB", "21.08.2026 08:30"),
         RecentFile(
             "pdf",

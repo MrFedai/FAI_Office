@@ -48,8 +48,9 @@ kotlin {
 }
 
 // Screenshots of the desktop tests: app/build/bakis/<theme>_<size>_<screen>.png.
+val bakisDir = layout.buildDirectory.dir("bakis")
 tasks.withType<Test>().configureEach {
-    systemProperty("bakis.dir", layout.buildDirectory.dir("bakis").get().asFile.absolutePath)
+    systemProperty("bakis.dir", bakisDir.get().asFile.absolutePath)
 }
 
 compose.desktop {
