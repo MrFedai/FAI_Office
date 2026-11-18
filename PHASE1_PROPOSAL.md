@@ -6,7 +6,8 @@ proof of concept in `poc/`; raw results and method are in `poc/RESULTS.md`, the 
 
 Measurement devices: Android numbers come from a **Samsung Galaxy A55** (Exynos 1480, 8 GB, Android 16,
 1080x2340 at 120 Hz), which is **not** the 4 GB reference device of section 7. Linux numbers come from a
-development PC under WSLg. Both limits are repeated where they matter.
+development PC under WSLg, Web numbers from headless Chromium on the same PC (16 cores, files served locally).
+These limits are repeated where they matter.
 
 The office engine as WebAssembly (WP7) is measured untrimmed and trimmed on the development PC; a real
 mid-range laptop is still open.
@@ -26,7 +27,8 @@ mid-range laptop is still open.
   Android memory budgets (36 MB at rest vs Flutter's 256 MB). Flutter is lighter on Linux and Web. The condition:
   the 4 GB reference phone must confirm the Android numbers before Phase 2 starts.
 * **Budgets:** all time budgets are confirmed; two RAM budgets need a definition (what is counted) and one viewer
-  design rule; two new budgets are proposed (Linux package, desktop RAM).
+  design rule; the Web office engine gets a number (≤ 60 MB gzip); three new budgets are proposed (Linux
+  package, desktop RAM, scroll janky frames).
 
 ---
 
@@ -36,11 +38,11 @@ mid-range laptop is still open.
 |---|---|---|
 | Shell / UI, all platforms | **Compose Multiplatform** (Kotlin): Jetpack Compose on Android, Compose for Desktop (JVM) on Linux / Windows / macOS, Compose on Kotlin/Wasm for Web; iOS later | Android: 36 MB PSS at rest, 7.9 MB APK with PDFium, first frame 139 ms (WP8). Linux: first frame 1.13 s, inside 1.5 s. Web: 4.06 MB initial load (PDFium loaded on first PDF open). One code base. See section 10 for the comparison with Flutter. |
 | PDF engine | **PDFium** (prebuilt, pinned) | First page 84–146 ms on the phone, 9 ms on Linux, 43 ms in the browser; 6.3 MB per ABI, 2.4 MB gzip for Web (PoC-1, PoC-2, WP5, WP8). |
-| Office engine | **LibreOffice core via LibreOfficeKit**, MPL subset, in a separate process | 20-page DOCX on the phone: 0.87 s cold, 0.6–0.8 s warm; 83 MB module download (WP6). |
+| Office engine | **LibreOffice core via LibreOfficeKit**, MPL subset, in a separate process | 20-page DOCX on the phone: 0.87 s cold, 0.6–0.8 s warm; 83 MB module download (WP6). Browser: same core as WASM, 56.7 MB gzip trimmed, DOCX laid out 2.8 s after page start (WP7). |
 | Engine ↔ shell | Android: bound service in its own process, tiles through `SharedMemory`. Desktop: child process, tiles through shared memory. Web: engine in its own Web Worker(s) | WP6: bind 55 ms, process start 15 ms, memory fully returned on exit. |
 | Native glue | Small C bridges (JNI on Android / JVM, JS interop on Web) | 50-line JNI bridge for PDFium in WP8. |
 | Archives | *proposed:* libarchive (BSD-2) for ZIP / 7Z / TAR and read-only RAR | Not built yet; Phase 5 PoC. |
-| Fonts | Liberation (OFL), Carlito (OFL), Caladea (Apache-2.0) bundled with the office engine (8 MB); Noto on demand | Bundled and used in WP6. |
+| Fonts | Liberation (OFL), Carlito (OFL), Caladea (Apache-2.0) bundled with the office engine (8 MB), plus LibreOffice's OpenSymbol (bullets, symbols); Noto on demand | Bundled and used in WP6 (Android) and WP7 (Web, where the font set also sets the engine start time). |
 | Build | Gradle (app), Docker images for the LibreOffice Android and WASM builds | `poc/lo-android/`, `poc/lo-wasm/`. |
 
 ## 2. Architecture diagram
@@ -116,19 +118,22 @@ against the corpus.
 | Format | Phase 1 PoC | R1 | R2 | R3 | R4 | R5 (Web) |
 |---|---|---|---|---|---|---|
 | PDF | rendered (PDFium) | 1 + annotations, forms, page ops | = | = | = | 1 |
-| DOCX | opened (LOK, phone + Linux) | 1 | 2 | 2 | 2 | 1 (2 if engine fits, section 10) |
+| DOCX | opened (LOK, phone + Linux + browser) | 1 | 2 | 2 | 2 | = R4 † |
 | ODT | opened (Linux) | 1 | 2 | 2 | 2 | as DOCX |
 | RTF, TXT | — | 1 | 2 | 2 | 2 | as DOCX |
 | DOC (legacy) | — | 1 | engine level, tested | = | = | as DOCX |
-| XLSX | opened, formulas computed | 1 | 1 | 2 | 2 | 1 |
-| ODS, CSV | ODS opened | 1 | 1 | 2 | 2 | 1 |
-| XLS (legacy) | — | 1 | 1 | engine level | = | 1 |
-| PPTX | opened | 1 | 1 | 1 | 2 + presentation mode | 1 |
-| ODP | opened | 1 | 1 | 1 | 2 | 1 |
-| PPT (legacy) | — | 1 | 1 | 1 | engine level | 1 |
+| XLSX | opened, formulas computed | 1 | 1 | 2 | 2 | = R4 † |
+| ODS, CSV | ODS opened | 1 | 1 | 2 | 2 | = R4 † |
+| XLS (legacy) | — | 1 | 1 | engine level | = | = R4 † |
+| PPTX | opened | 1 | 1 | 1 | 2 + presentation mode | = R4 † |
+| ODP | opened | 1 | 1 | 1 | 2 | = R4 † |
+| PPT (legacy) | — | 1 | 1 | 1 | engine level | = R4 † |
 | Images, SVG, text, HTML, XML, EPUB | — | 1 | = | = | = | 1 |
 | ZIP, 7Z, TAR | — | browse + extract | = | = | = | browse + extract |
 | RAR | — | browse + extract (read-only) | = | = | = | = |
+
+† Web reaches the native levels if the trimmed engine passes R3 on a mid-range laptop (section 10); otherwise
+Level 1 on Web for every office format.
 
 Level 3 is not promised for any release yet; it is set per format after the corpus thresholds (section 9) are
 measured in Phase 6.
@@ -143,6 +148,7 @@ measured in Phase 6.
 | Hunspell, Hyphen, cairo (MPL-1.1 / LGPL / GPL choices) | MPL-1.1, upgradeable to MPL-2.0 | **pass with written justification** (needed for spell check and on Android) |
 | Liberation, Carlito, Noto fonts | OFL-1.1 | pass |
 | Caladea font | Apache-2.0 | pass |
+| OpenSymbol font (part of LibreOffice) | to confirm | **open:** bundled in the WP7 trimmed set, not yet in `poc/LICENSE_AUDIT.md` |
 | Compose Multiplatform, Kotlin, AndroidX | Apache-2.0 | pass (not yet in the notice-file audit) |
 | Flutter (alternative shell) | BSD-3 | pass |
 | libarchive (proposed) | BSD-2 | to audit in Phase 5 |
@@ -164,7 +170,9 @@ child process (same IPC protocol as Android, shared memory for tiles). Packaging
 **Web (priority 3, release R5).** Compose on Kotlin/Wasm. Initial load: shell only (4.06 MB gzip measured); PDFium
 WASM (2.4 MB) on first PDF open; office engine WASM on first office document, cached by the browser, after the
 user sees the size. Must be served cross-origin isolated (COOP/COEP) for the engine's threads. No server-side
-processing. Office engine as trimmed in WP7: product fonts only, no dialog definitions (section 10).
+processing. Office engine as trimmed in WP7: product fonts only, no dialog definitions (section 10). The engine
+runs with its main loop in a worker (`PROXY_TO_PTHREAD`); its file system lives on the page's main thread, so
+documents are handed in from there, not from inside the engine worker (WP7 part 2).
 
 ## 8. Proof-of-concept results against section 7 budgets
 
@@ -174,8 +182,8 @@ processing. Office engine as trimmed in WP7: product fonts only, no dialog defin
 | Office engine module (one ABI) | ≤ 120 MB | 83 MB deflate (LibreOffice build), 81 MB gzip with fonts (harness APK); not trimmed yet | **confirm 120 MB** |
 | Cold start to usable Home | ≤ 1.5 s | Android first frame: Compose 139 ms, Flutter 207 ms; Linux: Compose 1.13 s, Flutter 260 ms | **confirm 1.5 s**, on Android and Linux |
 | 100-page PDF, first page visible | ≤ 1 s | phone 84–146 ms; Linux 9 ms; browser 43 ms | **confirm 1 s** (keep margin for 4 GB device) |
-| Typical 20-page DOCX, engine not loaded | ≤ 5 s | phone 0.87 s (first run after install 1.14 s); Linux 0.58 s | confirm 5 s now; **propose 3 s** after the 4 GB device and Microsoft-produced corpus files are measured |
-| Typical 20-page DOCX, engine loaded | ≤ 2 s | phone 0.62–0.78 s; Linux 0.23–0.30 s | **confirm 2 s** |
+| Typical 20-page DOCX, engine not loaded | ≤ 5 s | phone 0.87 s (first run after install 1.14 s); Linux 0.58 s; browser, engine cached, 2.7–2.8 s from page start (download not included) | confirm 5 s now; **propose 3 s** after the 4 GB device and Microsoft-produced corpus files are measured |
+| Typical 20-page DOCX, engine loaded | ≤ 2 s | phone 0.62–0.78 s; Linux 0.23–0.30 s; browser 0.3–0.4 s | **confirm 2 s** |
 | RAM on Home, no document | ≤ 150 MB | PSS incl. graphics: Compose 36 MB, Flutter 256 MB (Impeller holds ~150 MB GPU memory), Flutter-Skia 111 MB | **confirm 150 MB, defined as Android PSS including graphics** |
 | RAM while viewing a PDF | ≤ 300 MB | peak PSS while scrolling 101 pages: Compose 319, Flutter 392, Flutter-Skia 303 — dominated by the PoC's 12-page full-bitmap cache | **confirm 300 MB** plus a viewer rule: decoded page/tile cache ≤ 64 MB, one copy (GPU only) |
 | RAM while editing a typical document | ≤ 600 MB | viewing: engine process 209–228 MB + UI 93–109 MB; editing not measured | keep 600 MB; measure in Phase 7 |
@@ -253,7 +261,8 @@ was the font scan of 129 bundled fonts: with only the product fonts (Liberation,
 and without dialog definitions the engine is **56.7 MB gzip, ready in 2.1 s**, lays out the typical 20-page DOCX
 2.8 s after page start, opens the XLSX and PPTX in ~0.4 s, and the whole browser stays at ~0.9 GB PSS (16-core
 desktop, files local; 3.6 s pinned to two cores). The trim is a repackaging of the file-system image, no code
-change. R3 is met on the development PC; a real mid-range laptop is still to be measured.
+change. R3 is met on the development PC once the engine is cached; on a first visit the download comes on top
+(~9 s at 50 Mbit/s, so ~12 s in total). A real mid-range laptop is still to be measured.
 
 Options: (a) full LibreOffice WASM engine fetched on first office document and cached, after the user sees size
 and wait; (b) reduced office scope on Web (view-only, or Writer only via `--with-wasm-module=writer`) with the
@@ -262,7 +271,9 @@ compatibility matrix saying so; a server fallback is not an option (section 9).
 *Recommendation:* **(a), full office scope on Web**, with the trimmed engine fetched on the first office document
 and cached. The first visit costs the download (~9 s at 50 Mbit/s), so the size is shown before it starts.
 Before R5: confirm R3 on a real mid-range laptop and fix the font set (non-Latin scripts) with the fidelity
-corpus. Optional later: a Writer-only module (`soffice.wasm` is 88 % of the download) and a smaller initial heap.
+corpus. Optional later: a Writer-only module (`soffice.wasm` is 88 % of the download), a smaller initial heap,
+and a prebuilt fontconfig cache (the slow start was the font scan, so a cache may allow more fonts at no start
+cost).
 (b) remains the fallback if the laptop measurement fails.
 
 ### Linux packaging
@@ -283,7 +294,7 @@ always-available offline build. Not measured; to be validated in Phase 2 CI.
 |---|---|---|---|
 | R1 | Shell memory on the 4 GB reference phone | Go if Home PSS ≤ 150 MB and PDF viewing ≤ 300 MB on that phone | open: phone not yet available |
 | R2 | Office engine size grows with fonts / filters | Go if the engine module stays ≤ 120 MB download per ABI | 81–83 MB measured |
-| R3 | Office engine in the browser is too large or slow | Go for full office scope on Web if the trimmed engine is ≤ 60 MB gzip, opens the typical DOCX in ≤ 10 s on a mid laptop and stays < 1.5 GB; otherwise reduced scope | **met on the development PC (trimmed):** 56.7 MB gzip, typical DOCX laid out 2.8 s after page start (3.6 s on two cores), Chromium PSS ~0.9 GB; real mid laptop not measured |
+| R3 | Office engine in the browser is too large or slow | Go for full office scope on Web if the trimmed engine is ≤ 60 MB gzip, opens the typical DOCX in ≤ 10 s on a mid laptop and stays < 1.5 GB; otherwise reduced scope | **met on the development PC (trimmed, engine cached):** 56.7 MB gzip, typical DOCX laid out 2.8 s after page start (3.6 s on two cores), Chromium PSS ~0.9 GB; first visit adds the download (~9 s at 50 Mbit/s); real mid laptop not measured |
 | R4 | Play on-demand delivery of a ~200 MB native library | Go if a `bundletool` local test installs the engine module on demand and it starts | not tested |
 | R5 | Fidelity on Microsoft-produced documents | Go for R1 if ≥ 95 % of the corpus passes Level 1 thresholds | corpus not built |
 | R6 | Engine process IPC latency for editing | Go for R2 if a tile round trip after a key press is ≤ 50 ms on the reference phone | not measured |
@@ -305,7 +316,7 @@ always-available offline build. Not measured; to be validated in Phase 2 CI.
 | 7 | Writer editing (Level 2) | 6 | **R2** |
 | 8 | Sheets editing (Level 2) | 6 | **R3** |
 | 9 | Slides editing, presentation mode | 6 | **R4** |
-| 10 | Web version: Kotlin/Wasm shell, PDFium WASM, office engine WASM (scope per WP7) | 2–6 | **R5** |
+| 10 | Web version: Kotlin/Wasm shell, PDFium WASM, trimmed office engine WASM (scope per R3, section 10) | 2–6 | **R5** |
 | 11 | Windows, iOS, macOS adaptation | 2–9 | **R6** |
 
 Phases 4 and 5 can run in parallel after 3. Nothing from Phase 7 onward may delay R1.
@@ -318,6 +329,8 @@ Phases 4 and 5 can run in parallel after 3. Nothing from Phase 7 onward may dela
 2. Budget definitions: RAM as Android PSS including graphics; the PDF viewer cache rule; the proposed new
    budgets (Linux package, desktop RAM, scroll janky frames).
 3. Linux packaging: Flatpak + extension, plus a full AppImage.
-4. Acquire the 4 GB reference phone (exact model to be fixed) before Phase 2.
+4. Acquire the 4 GB reference phone before Phase 2; spec section 7 expects its exact model to be fixed in
+   Phase 1, so the owner names it at this review.
 5. Office scope on Web: full office scope with the trimmed engine on demand (recommended; R3 met on the
-   development PC, to be confirmed on a mid-range laptop), otherwise reduced scope (section 10).
+   development PC, to be confirmed on a mid-range laptop), otherwise reduced scope (section 10). Also: whether
+   R3's "≤ 10 s" counts the first-visit download or only the cached engine (measured: cached).
