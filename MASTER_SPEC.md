@@ -15,7 +15,7 @@ These are settled. Do not reopen them unless Phase 1 measurements prove one impo
 5. **Team:** one developer working with AI coding agents, no fixed deadline. Phases are gated by acceptance
    criteria, not dates.
 6. **UI languages for the first release:** English and Turkish.
-7. **Performance budgets:** the numbers in section 7 stay provisional until Phase 1 measures them.
+7. **Performance budgets:** measured in Phase 1 and approved at the Phase 1 review; see section 7.
 
 Decided at the Phase 1 review (2026-11-18, `PHASE1_PROPOSAL.md`):
 
@@ -216,22 +216,36 @@ Performance is designed in from the beginning and checked at the end of every ph
 
 Reference device: mid-range Android phone, 4 GB RAM. Exact model fixed in Phase 1.
 
-All numbers below are provisional. Phase 1 measures the proofs of concept and either confirms each number or
-proposes a new one with evidence. The owner approves the final numbers at the Phase 1 review.
+The numbers below were measured in Phase 1 and approved at the Phase 1 review (2026-11-18); evidence in
+`PHASE1_PROPOSAL.md` section 8 and `poc/RESULTS.md`. A budget changes only with new measurements and owner approval.
 
 | Metric                                                      | Budget                    |
 |-------------------------------------------------------------|---------------------------|
 | Android base download (light core, one ABI)                 | ≤ 30 MB                   |
 | Office engine module download (one ABI)                     | ≤ 120 MB                  |
-| Cold start to usable Home screen                            | ≤ 1.5 s                   |
+| Cold start to usable Home screen (Android and Linux)        | ≤ 1.5 s                   |
 | Open a 100-page PDF, first page visible                     | ≤ 1 s                     |
-| Open a typical 20-page DOCX, engine not yet loaded          | ≤ 5 s                     |
+| Open a typical 20-page DOCX, engine not yet loaded          | ≤ 5 s (3 s proposed after the reference phone and Microsoft-produced corpus files are measured) |
 | Open a typical 20-page DOCX, engine already loaded          | ≤ 2 s                     |
 | RAM on Home screen, no document open                        | ≤ 150 MB                  |
 | RAM while viewing a PDF                                     | ≤ 300 MB                  |
-| RAM while editing a typical office document                 | ≤ 600 MB                  |
-| Web initial load, light core, compressed                    | ≤ 5 MB                    |
-| Web office engine download                                  | measured in Phase 1, then budgeted |
+| RAM while editing a typical office document                 | ≤ 600 MB (measured in Phase 7) |
+| PDF viewer decoded page / tile cache                        | ≤ 64 MB, one copy (GPU only) |
+| Scrolling a document, janky frames                          | ≤ 1 %                     |
+| Web initial load, light core, compressed                    | ≤ 5 MB (PDFium loaded on first PDF open, not counted) |
+| Web office engine download, compressed                      | ≤ 60 MB, on demand, size shown before download |
+| Web: typical 20-page DOCX laid out, engine cached, mid-range laptop | ≤ 10 s, browser < 1.5 GB |
+| Linux package, light core, installed                        | ≤ 150 MB (confirmed by a native-Linux measurement) |
+| Desktop RAM at rest                                         | set after a native-Linux measurement (Phase 2) |
+
+Definitions:
+
+* RAM on Android is PSS from `dumpsys meminfo`, graphics memory included; shell and engine processes are summed
+  while both run.
+* Times are measured on the reference device (Android), a native mid-range Linux laptop (Linux) and a mid-range
+  laptop in Chromium (Web), from user action to the first complete frame.
+* Janky frames: `dumpsys SurfaceFlinger --timestats`, share of the app layer's frames that missed their deadline
+  while scrolling a 100-page PDF.
 
 Standing requirements:
 
