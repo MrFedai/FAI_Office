@@ -14,3 +14,7 @@ ktlint_function_naming_ignore_when_annotated_with = Composable
 
 [*.{yml,yaml,json}]
 indent_size = 2
+
+# Generated sources (Compose resources Res and collectors) follow the generator's style, not ours.
+[**/build/generated/**]
+ktlint_standard = disabled

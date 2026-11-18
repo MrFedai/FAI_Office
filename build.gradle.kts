@@ -15,8 +15,6 @@ subprojects {
     apply(plugin = "dev.detekt")
     extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         version.set(ktlintVersion)
-        // Generated sources (Compose resources Res, collectors) follow the generator's style, not ours.
-        filter { exclude { it.file.path.contains("/build/generated/") } }
     }
     extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         buildUponDefaultConfig.set(true)
