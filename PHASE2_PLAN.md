@@ -30,7 +30,7 @@ for P2.8 (WSLg numbers do not count).
 
 ---
 
-### P2.1 Project skeleton and build
+### P2.1 Project skeleton and build — YAPILDI (dev c4881a6)
 
 Efor: high
 
@@ -42,6 +42,13 @@ COOP / COEP in development. `LICENSE` (MPL-2.0) and the source header rule.
 
 Done when: `./gradlew check`, the Android debug APK, the desktop distribution and the Wasm distribution build
 from a clean checkout; each starts and shows an empty window; no dependency outside section 11's allowed list.
+
+Result: AGP 9 keeps `com.android.application` out of KMP modules, so the Android entry point is a separate
+`androidApp/` module and `app/` is a KMP library (deviation from the section 3 layout). Compose Multiplatform 1.12
+needs `compileSdk 37`, hence AGP 9.5.1 and Gradle 9.6.0; `targetSdk` stays 36. Placeholder shell: release APK
+1.09 MB (A55), Web first load 3.81 MB gzip (Chromium), desktop distributable 128 MB (WSLg, software rendering).
+Runtime dependencies: AndroidX, JetBrains Compose / Kotlin / skiko, Guava listenablefuture, JSpecify; all
+Apache-2.0.
 
 ### P2.2 CI scripts
 
