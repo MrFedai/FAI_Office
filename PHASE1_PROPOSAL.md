@@ -322,6 +322,64 @@ always-available offline build. Not measured; to be validated in Phase 2 CI.
 
 Phases 4 and 5 can run in parallel after 3. Nothing from Phase 7 onward may delay R1.
 
+## 13. Minimum OS versions (proposed)
+
+Each floor is set by the strictest component that the product cannot drop. Sources are listed per row; nothing
+below was measured on the oldest version yet (all PoCs ran on Android 16, Linux under WSLg and current Chromium).
+
+### Android
+
+| Component | Floor | Source |
+|---|---|---|
+| LibreOffice core (LibreOfficeKit) | API 21 | `configure.ac` default for ARM64 (`ANDROID_API_LEVEL=21`); the WP6 build used it |
+| AndroidX / Jetpack Compose | API 23 | AndroidX default minSdk is 23; Compose Multiplatform resources declare 23 since Compose 1.10 |
+| `android.os.SharedMemory` (engine tiles, section 1) | API 27 | Android API reference |
+| PDFium prebuilt | lower than all of the above | not limiting |
+
+Technical floor: **API 27 (Android 8.1)**. Device reach (Google distribution data, 2026-10-01, cumulative):
+API 27 98.5 %, API 28 97.0 %, API 29 93.9 %, API 30 88.2 %.
+
+**Proposal: `minSdk 29` (Android 10), `targetSdk` / `compileSdk` = the level Play requires at release (36 today),
+`arm64-v8a` only.** Why 29 and not 27: Android 10 adds the system-wide dark theme and gesture-navigation insets
+that the Compose shell uses without fallback code, and scoped storage is the only storage model from there on
+(Phase 3 is built on SAF / content URIs only); every supported release is one more emulator image in CI for one
+developer. Cost: 6.1 % of active devices (mostly 2018 and older). *Alternative:* `minSdk 27`, 98.5 % reach, with
+fallbacks for the two shell features. No 32-bit ABI: the office engine would need a second ~80 MB build and 32-bit
+devices are far below the RAM budgets. Native libraries must be 16 KB page aligned (Play requirement; NDK r28
+default), to be checked in Phase 2 CI.
+
+### Browsers (Web, R5)
+
+| Requirement | Chrome / Edge | Firefox | Safari (macOS, iOS) | Source |
+|---|---|---|---|---|
+| WasmGC (Kotlin/Wasm shell) | 119 | 120 | 18.2 | Kotlin/Wasm documentation; Chrome WasmGC announcement |
+| Legacy Wasm exception handling (Kotlin/Wasm default, Emscripten engine) | 95 | 100 | 15.2 | Emscripten feature matrix |
+| `SharedArrayBuffer` under COOP / COEP (engine threads, `PROXY_TO_PTHREAD`) | 92 (Android 88) | 79 | 15.2 | Chrome SAB announcement; WebKit "Safari 15.2" post |
+
+**Proposal: Chrome / Edge ≥ 119, Firefox ≥ 120 (ESR included), Safari ≥ 18.2**, set by WasmGC. The page checks
+WasmGC and `crossOriginIsolated` before loading the shell and shows a plain "browser not supported" page
+otherwise. Hosting must send `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy:
+require-corp`. Only Chromium is measured (WP7, WP8); Firefox and Safari runs join the Phase 2 Web CI (R8). The
+File System Access API (Phase 3) exists only in Chromium; other browsers use open / download.
+
+### Linux
+
+| Package | Baseline | Source |
+|---|---|---|
+| Flatpak | runtime `org.freedesktop.Platform`, newest stable branch at Phase 2 start (25.08: glibc 2.42, supported two years, to about 2027-09); host glibc does not matter | freedesktop-sdk release notes and support policy |
+| AppImage (full offline build) | **glibc ≥ 2.35**: build the shell bundle and the office engine on Ubuntu 22.04 (covers Ubuntu 22.04+, Debian 12+, Fedora 36+); older or RHEL 9 users take the Flatpak | glibc is the floor of an AppImage; the WP6/WP7 LibreOffice builds ran on Ubuntu 24.04 (glibc 2.39), so the build image moves down one LTS; Compose's Skia (skiko) is built on Ubuntu 20.04 per JetBrains' build image (community report, to verify) |
+
+Both packages: `x86_64` only at R1 (`aarch64` with the Windows / macOS work), a bundled jlink'ed JVM, X11 or
+XWayland (Compose for Desktop has no native Wayland backend yet). The Phase 2 CI starts the AppImage on the oldest
+baseline image.
+
+Sources (read 2026-11-18): Android distribution, composables.com/android-distribution-chart (Google data
+2026-10-01); AndroidX minSdk, developer.android.com/jetpack/androidx/releases; Kotlin/Wasm browser support,
+kotlinlang.org/docs/wasm-troubleshooting.html; WasmGC, developer.chrome.com/blog/wasmgc; SAB, developer.chrome.com/
+blog/enabling-shared-array-buffer and webkit.org "New WebKit Features in Safari 15.2"; Emscripten
+`tools/feature_matrix.py`; freedesktop-sdk 25.08 release notes (gitlab.com/freedesktop-sdk); skiko build image,
+Kotlin Slack thread on CMP-2279; LibreOffice `configure.ac` (26.8.2, local).
+
 ---
 
 ## Owner decisions at the Phase 1 review
@@ -353,4 +411,5 @@ Decided:
 Still open in Phase 1 (spec sections 0 and 7):
 
 * Reference phone: exact 4 GB model to name and acquire.
-* Minimum OS versions (Android API level, browsers, Linux baseline): not covered by this proposal yet.
+* Minimum OS versions: proposed in section 13 (Android `minSdk 29`, Chrome / Edge 119, Firefox 120, Safari 18.2,
+  Flatpak runtime + AppImage on glibc 2.35).
