@@ -66,6 +66,17 @@ const metrics = Object.fromEntries((await send('Performance.getMetrics')).metric
 console.log(Object.entries(res).map(([k, v]) => `${k.padEnd(28)} ${v}`).join('\n'));
 if (!res.finished) console.log('TIMEOUT: engine test did not finish');
 
+// Real memory: PSS of the Chromium process tree after the test (the shared WASM heap is split fairly between the
+// threads' processes; untouched heap pages are not counted).
+const kids = new Map();
+for (const p of readdirSync('/proc').filter(d => /^\d+$/.test(d))) {
+  try { const ppid = readFileSync(`/proc/${p}/stat`, 'utf8').split(') ')[1].split(' ')[1]; kids.set(p, ppid); } catch {}
+}
+const tree = [String(proc.pid)];
+for (let i = 0; i < tree.length; i++) for (const [p, pp] of kids) if (pp === tree[i]) tree.push(p);
+const pss = tree.map(p => { try { return Number(/^Pss:\s+(\d+)/m.exec(readFileSync(`/proc/${p}/smaps_rollup`, 'utf8'))[1]) / 1024; } catch { return 0; } });
+console.log(`chromium PSS: ${pss.reduce((a, b) => a + b, 0).toFixed(0)} MB total, largest process ${Math.max(...pss).toFixed(0)} MB (${tree.length} processes)`);
+
 let raw = 0, gz = 0;
 const rows = [];
 for (const u of urls) {

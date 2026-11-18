@@ -327,7 +327,7 @@ corpus into `/tmp` from the main thread (`preRun`) before the engine starts.
 | Typical XLSX (2 sheets) | **496 ms** | **511 ms** |
 | Typical PPTX (12 slides) | **431 ms** | **887 ms** |
 | Typical 20-page DOCX, second open | 182 ms + layout 285 ms | 259 ms + 298 ms |
-| Page start → typical DOCX opened and laid out | **13.1 s** | **12.8 s** |
+| Engine start + typical DOCX open + layout | **13.1 s** | **12.8 s** |
 | WASM heap | 1 024 MB (fixed) | 1 024 MB |
 
 * **Once the engine is up, documents open in about half a second** (DOCX 0.5 s + 0.3 s layout, XLSX 0.5 s,
@@ -339,5 +339,49 @@ corpus into `/tmp` from the main thread (`preRun`) before the engine starts.
 * Memory: the heap is a fixed 1 GB block reserved at start. `measureUserAgentSpecificMemory` reports 2.2 GB
   before and 4.25 GB after the documents; it most likely counts the shared heap once per engine thread, so it is
   not used as a figure.
-* Not measured yet: the trimmed engine (product fonts, no UI definitions, Writer-only module), a mid-range
-  laptop, rendering a page to the screen (only load + layout here).
+* Measured in part 3: the trimmed engine. Not measured yet: a mid-range laptop, rendering a page to the screen
+  (only load + layout here).
+
+## WP7 (part 3) — trimmed engine: file-system image only
+
+`lo-wasm/trim.sh`, same `soffice.wasm` / `soffice.js` (no rebuild): only the file-system image `soffice.data` is
+repackaged with Emscripten's `file_packager`. Removed: the dialog definitions (`soffice.cfg/**/*.ui`) except the
+three the engine opens headless, gallery, wizards, splash images, and every font except the product set
+(Liberation, Carlito, Caladea) and OpenSymbol. 1 168 of 1 888 files, 72.5 MB raw.
+
+Which `.ui` files are needed was traced with an `FS.open` hook while loading the three documents: only
+`svt/ui/scrollbars.ui`, `svt/ui/tabbuttons.ui` and `modules/simpress/ui/tabviewbar.ui`. Removing all `.ui` files
+makes every `loadComponentFromURL` return null.
+
+Bisecting (one run each): removing only the fonts takes the engine start from ~11 s to **2.0 s**; removing only
+the dialog definitions or the extras does not change the start (10.6–10.8 s). **The slow start was the font scan
+of the 129 bundled fonts (51 MB)**, not the engine code. The product set also lays out the typical DOCX to the
+same 20 pages.
+
+Memory is now Chromium's whole process tree, PSS after the test (`measure.mjs`), instead of the browser API.
+
+| Metric (local server, no network time) | Untrimmed | Trimmed, run 1 | Trimmed, run 2 |
+|---|---|---|---|
+| `soffice.data` | 92.9 MB raw / 27.0 MB gzip | 20.4 MB raw / **6.8 MB gzip** | |
+| Total engine download | 76.8 MB gzip | **56.7 MB gzip** (of which `soffice.wasm` 49.7 MB) | |
+| Page start → UNO ready | 11.3–12.3 s | **2.1 s** | **2.1 s** |
+| Typical 20-page DOCX, first open + full layout | 0.5 + 0.3 s | 0.36 + 0.23 s | 0.41 + 0.27 s |
+| Typical XLSX / PPTX | 0.5 / 0.4–0.9 s | 0.40 / 0.33 s | 0.42 / 0.42 s |
+| Typical DOCX, second open + layout | 0.18–0.26 + 0.3 s | 0.16 + 0.14 s | 0.16 + 0.19 s |
+| Engine start + typical DOCX open + layout | 12.8–13.1 s | **2.7 s** | **2.8 s** |
+| Chromium PSS, whole process tree | 998 MB | **902 MB** (largest process 535 MB) | |
+
+Mid-range machine indication (one run each, Chromium pinned with `taskset`, same fast cores):
+
+| Cores | UNO ready | DOCX open + layout | XLSX | PPTX | Start + DOCX | PSS |
+|---|---|---|---|---|---|---|
+| 4 | 2.2 s | 0.30 + 0.22 s | 0.45 s | 0.51 s | 2.7 s | 888 MB |
+| 2 | 2.6 s | 0.57 + 0.45 s | 0.74 s | 0.73 s | 3.6 s | 896 MB |
+
+* **The trimmed engine meets R3 on this machine**: 56.7 MB gzip (≤ 60), typical DOCX laid out ~2.8 s after page
+  start (≤ 10 s), ~0.9 GB for the whole browser (< 1.5 GB). Even on two cores it stays at 3.6 s.
+* Download, not start, is now the first-visit cost: 56.7 MB is ~9 s at 50 Mbit/s, once; the browser then caches
+  it. `soffice.wasm` is 88 % of it, so the next lever is the code itself (Writer-only module), not the data.
+* Still open: a real mid-range laptop (slower cores than the pinned runs), the Writer-only module, a smaller
+  initial heap (the 1 GB is reserved but only touched pages count), and the fonts needed for non-Latin scripts
+  (only Latin product fonts here; the font set must be decided with the fidelity corpus).
