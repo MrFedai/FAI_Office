@@ -87,7 +87,7 @@ Result: `.devops.toml` and `.mcp.json` are local (`.git/info/exclude`), backed u
 `accounts = 1`. `look` = `app/src/`, `DESIGN.md`; `design_check` comes with P2.7. `project_info` loads the project
 and `job_run lint` passed over MCP stdio; this session's devops tools stay off until the session is reopened.
 
-### P2.4 DESIGN.md and design tokens
+### P2.4 DESIGN.md and design tokens — YAPILDI (dev 4ff0092)
 
 Efor: high
 

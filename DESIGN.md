@@ -2,7 +2,7 @@
 
 Extends the shared design base `claude-ortak/tasarim/TEMEL.md` (kit v1.0, tokens 1.1.0). Only the differences and
 the office-specific parts are written here; everything else follows TEMEL. Where the two disagree, this file wins.
-Status: draft for owner approval (P2.4, 2026-11-18).
+Status: approved by the owner (P2.4, 2026-11-18).
 
 ## 1. Identity
 
