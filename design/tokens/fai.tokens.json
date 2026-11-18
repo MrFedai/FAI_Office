@@ -1,0 +1,33 @@
+{
+  "meta": {"name": "FAI Trade", "version": "1.1.0", "date": "2026-11-05", "note": "Tek kaynak: web (fai.css) ve Flutter (fai_theme.dart) bu değerlerden üretildi."},
+  "font": {"sans": "IBM Plex Sans", "mono": "IBM Plex Mono", "weights": [400, 500, 600, 700]},
+  "type": {"pageTitle": 18, "cardTitle": 14, "body": 13, "small": 12, "label": 11, "price": 26, "mobileBody": 14},
+  "radius": {"card": 10, "control": 8, "segment": 9, "chip": 999, "modal": 14},
+  "space": {"pagePadX": 16, "pagePadXCompact": 12, "pagePadY": 14, "gap": 12, "cardPad": 16, "mobilePad": 12, "mobileGap": 10},
+  "size": {"desktopTopBar": 52, "footer": 34, "mobileTabBar": 68, "touchMin": 44, "control": 36, "controlLg": 44, "planPanel": "clamp(320px, 26vw, 392px)"},
+  "breakpoints": {"mobile": "0-899", "compact": "900-1279", "desktop": "1280+", "desktopShortHeight": 780},
+  "color": {
+    "dark": {
+      "bg": "#070D1C", "surface": "#0C1528", "surface2": "#101C33", "input": "#0A1224",
+      "border": "#1A2843", "border2": "#273958", "text": "#E7ECF6", "muted": "#93A0B8",
+      "primary": "#2F6FE4", "primaryInk": "#7FA8F5", "primarySoft": "rgba(47,111,228,.16)",
+      "pos": "#2BC48A", "neg": "#F0565E", "warn": "#F2A93B", "violet": "#A78BFA",
+      "posZ": "rgba(43,196,138,.13)", "negZ": "rgba(240,86,94,.13)",
+      "violetOn": "#140A2E", "violetSoft": "rgba(167,139,250,.14)", "brand": "#3BE0B0",
+      "chartGrid": "rgba(147,160,184,.08)"
+    },
+    "light": {
+      "bg": "#F3F5F9", "surface": "#FFFFFF", "surface2": "#F1F4F9", "input": "#FFFFFF",
+      "border": "#E0E5EE", "border2": "#CBD3E1", "text": "#0E1626", "muted": "#566178",
+      "primary": "#2563D6", "primaryInk": "#1F55BE", "primarySoft": "rgba(37,99,214,.10)",
+      "pos": "#0E8A5C", "neg": "#CF3039", "warn": "#A86300", "violet": "#7C5AD9",
+      "posZ": "rgba(14,138,92,.13)", "negZ": "rgba(207,48,57,.13)",
+      "violetOn": "#FFFFFF", "violetSoft": "rgba(124,90,217,.10)", "brand": "#0E9C78",
+      "chartGrid": "rgba(14,22,38,.06)"
+    }
+  },
+  "semantic": {
+    "long": "pos", "short": "warn", "stop": "neg", "support": "pos (zemin %13)", "resistance": "neg (zemin %13)",
+    "entryZone": "warn, kesikli kenar", "candleUp": "pos", "candleDown": "neg", "currentPrice": "primary, noktalı çizgi"
+  }
+}

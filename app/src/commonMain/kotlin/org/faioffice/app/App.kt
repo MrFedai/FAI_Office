@@ -10,14 +10,16 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
+import org.faioffice.app.theme.FaiTheme
+import org.faioffice.app.theme.ThemeMode
 import org.faioffice.core.AppInfo
 
-/** Root of the shell on every platform. Placeholder until the design system (P2.4) and navigation (P2.5). */
+/** Root of the shell on every platform. Placeholder until navigation (P2.5); the theme follows the system. */
 @Composable
-fun App() {
-    Box(Modifier.fillMaxSize().background(Color(0xFF111418)), contentAlignment = Alignment.Center) {
-        BasicText(AppInfo.NAME, style = TextStyle(color = Color(0xFFE6E8EB)))
+fun App(themeMode: ThemeMode = ThemeMode.System) {
+    FaiTheme(themeMode) {
+        Box(Modifier.fillMaxSize().background(FaiTheme.colors.bg), contentAlignment = Alignment.Center) {
+            BasicText(AppInfo.NAME, style = FaiTheme.type.pageTitle.copy(color = FaiTheme.colors.text))
+        }
     }
 }

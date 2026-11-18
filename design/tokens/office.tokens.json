@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "name": "FAI Office",
+    "version": "1.0.0",
+    "date": "2026-11-18",
+    "extends": "fai.tokens.json",
+    "note": "FAI Office additions and overrides on top of the kit tokens. tools/tokens/gen_compose.py merges both into Compose; DESIGN.md explains every entry."
+  },
+  "drop": {
+    "why": "FAI Trade meanings (long / short, price zones, chart grid) and CSS-only values do not enter the office suite.",
+    "color": ["posZ", "negZ", "violetOn", "chartGrid"],
+    "size": ["planPanel"]
+  },
+  "rename": {
+    "type": {"price": "hero", "mobileBody": "bodyMobile"}
+  },
+  "overrides": {
+    "why": "Kit light pos #0E8A5C (3.96:1 on bg), warn #A86300 (4.32:1 on bg) and violet #7C5AD9 (4.45:1 on bg) miss 4.5:1; FAI Office darkens them, same hue. Reported back to the kit.",
+    "light": ["pos", "warn", "violet"]
+  },
+  "color": {
+    "dark": {
+      "text2": "#C2CBDB",
+      "onPrimary": "#FFFFFF",
+      "fileDocument": "#4DB3F2",
+      "fileSpreadsheet": "#3CC77F",
+      "filePresentation": "#F28B50",
+      "filePdf": "#F4707C",
+      "fileArchive": "#D6A65C",
+      "fileConverter": "violet",
+      "fileImage": "#E07FD0"
+    },
+    "light": {
+      "pos": "#0B7A50",
+      "warn": "#9A5B00",
+      "violet": "#6F4ACF",
+      "text2": "#2F3B52",
+      "onPrimary": "#FFFFFF",
+      "fileDocument": "#0B67A6",
+      "fileSpreadsheet": "#137A3E",
+      "filePresentation": "#B0480C",
+      "filePdf": "#BD2440",
+      "fileArchive": "#855A12",
+      "fileConverter": "violet",
+      "fileImage": "#9C2C86"
+    }
+  },
+  "contrast": {
+    "minimum": 4.5,
+    "text": ["text", "text2", "muted", "primaryInk", "pos", "neg", "warn", "violet",
+      "fileDocument", "fileSpreadsheet", "filePresentation", "filePdf", "fileArchive", "fileConverter", "fileImage"],
+    "surfaces": ["bg", "surface", "surface2", "input"],
+    "onFill": {"onPrimary": "primary"},
+    "onTint": {"text": "primarySoft", "primaryInk": "primarySoft", "violet": "violetSoft"},
+    "notText": {
+      "primary": "fill of the primary button and the focus ring; text on it is onPrimary",
+      "brand": "logo mark only (TEMEL 2: brand colour is never a text colour)",
+      "border": "lines", "border2": "lines",
+      "primarySoft": "tint behind selected items", "violetSoft": "tint behind converter items"
+    }
+  },
+  "typeStyle": {
+    "pageTitle": {"size": "pageTitle", "weight": 600, "lineHeight": 24, "font": "sans"},
+    "cardTitle": {"size": "cardTitle", "weight": 600, "lineHeight": 20, "font": "sans"},
+    "bodyMobile": {"size": "bodyMobile", "weight": 400, "lineHeight": 20, "font": "sans"},
+    "body": {"size": "body", "weight": 400, "lineHeight": 18, "font": "sans"},
+    "button": {"size": "body", "weight": 500, "lineHeight": 18, "font": "sans"},
+    "small": {"size": "small", "weight": 400, "lineHeight": 16, "font": "sans"},
+    "label": {"size": "label", "weight": 500, "lineHeight": 14, "font": "sans"},
+    "hero": {"size": "hero", "weight": 600, "lineHeight": 32, "font": "mono"},
+    "number": {"size": "body", "weight": 400, "lineHeight": 18, "font": "mono"},
+    "numberSmall": {"size": "small", "weight": 400, "lineHeight": 16, "font": "mono"}
+  },
+  "space": {
+    "scale": [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 32]
+  },
+  "size": {
+    "sideNav": 232,
+    "sideNavRail": 72,
+    "docToolbar": 48,
+    "icon": 20,
+    "iconSmall": 16,
+    "fileBadge": 36,
+    "dialogMax": 720,
+    "border": 1
+  },
+  "breakpoints": {
+    "medium": 600,
+    "phoneLandscapeHeight": 500
+  },
+  "alpha": {
+    "disabled": 0.45,
+    "fileTint": 0.14
+  },
+  "motion": {
+    "hoverMs": 120,
+    "stateMs": 220,
+    "easing": [0.2, 0.7, 0.2, 1.0]
+  }
+}

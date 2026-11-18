@@ -12,4 +12,7 @@ if [ -n "$missing" ]; then
 fi
 echo "== header passed"
 
+echo "== tokens: generated Compose tokens match design/tokens/*.json (tools/tokens/gen_compose.py)"
+python3 tools/tokens/gen_compose.py --check
+
 run_gradle lint ktlintCheck detekt
