@@ -1,0 +1,140 @@
+# FAI_Office — Phase 2 Plan: shell, design system, CI
+
+Status: **draft, 2026-11-18**, after Phase 1 approval. Scope from MASTER_SPEC section 13 (Phase 2) and
+`PHASE1_PROPOSAL.md` sections 3, 7 and 12. Product code starts here; `poc/` stays as reference and is not built
+by the product.
+
+Item fields are read by the project's run tooling: `Efor` (agent effort: high / medium / low), `Done when`
+(acceptance), `Ask owner` (decision needed before the item starts). A finished item gets `— YAPILDI (<commit>)`
+in its heading.
+
+## Exit criteria
+
+* Android, Linux and Web builds of the shell come from one code base and pass CI.
+* Every screen of section 10's navigation exists (empty states), in English and Turkish, light and dark.
+* `DESIGN.md` is written and approved by the owner.
+* Phase 2 budgets hold, measured, not estimated: Android base download, cold start and Home RAM on the Galaxy
+  A17 5G; Linux cold start and package size on a native Linux machine; Web initial load (section 7).
+* R1 (shell memory on the reference phone) is closed as go, R7 (JVM start, native Linux) and R8 (Web build in
+  CI) as go.
+
+## Order and gates
+
+P2.1 → P2.2 → P2.3 in a normal session (the run tooling is not set up before P2.3). P2.4 onward as a `/surum`
+run. **Gate before P2.5:** the reference phone has arrived and R1 passes with the Phase 1 PoC APKs
+(`poc/compose-pdf`: Home ≤ 150 MB, PDF viewing ≤ 300 MB). If R1 fails, the shell choice is reopened before any
+screen is built.
+
+Owner actions: buy the Galaxy A17 5G 4 / 128 GB (needed for the P2.5 gate and P2.8); name a native Linux machine
+for P2.8 (WSLg numbers do not count).
+
+---
+
+### P2.1 Project skeleton and build
+
+Efor: high
+
+Gradle Kotlin Multiplatform project in the layout of `PHASE1_PROPOSAL.md` section 3, only what Phase 2 needs:
+`app/` (commonMain, androidMain, desktopMain, wasmJsMain) and `core/` (settings, localisation). Version catalog
+with pinned versions (Kotlin, Compose Multiplatform, AGP; the PoC versions are the starting point). Android:
+`minSdk 29`, `targetSdk` / `compileSdk 36`, `arm64-v8a`. Desktop: jlink'ed JVM. Web: Kotlin/Wasm, served with
+COOP / COEP in development. `LICENSE` (MPL-2.0) and the source header rule.
+
+Done when: `./gradlew check`, the Android debug APK, the desktop distribution and the Wasm distribution build
+from a clean checkout; each starts and shows an empty window; no dependency outside section 11's allowed list.
+
+### P2.2 CI scripts
+
+Efor: medium
+
+`ci/` scripts, each runnable alone and printing progress: lint (ktlint, detekt), unit tests, Android build,
+desktop package, Wasm build with a gzip size check against the 5 MB budget, dependency license check (fails on a
+forbidden license, section 11). `ci/all.sh` runs everything. A GitHub Actions workflow calls the same scripts and
+becomes active once a public remote exists.
+
+Done when: `ci/all.sh` passes from a clean checkout; lowering the Wasm size limit makes it fail; adding a GPL test
+dependency makes the license check fail.
+
+Ask owner: create the public GitHub remote now (CI runs on every push) or later (CI runs locally until R1).
+
+### P2.3 Run tooling (`/surum kur`)
+
+Efor: medium
+
+`.devops.toml`: fix `tasks.worktree_dir` (must be outside the repo, `~/PROJECTS/FAI_Office-wt`); jobs for the P2.2
+scripts (`lint` as the gate, test jobs by path); `[surum]` with `list = "PHASE2_PLAN.md"`, `state` = the status note,
+no release command in Phase 2. `.mcp.json` for the devops server. Backup through `devops-mcp/projects/fai-office/`.
+
+Done when: the devops server loads the project (`project_info`) and the gate job passes once.
+
+### P2.4 DESIGN.md and design tokens
+
+Efor: high
+
+`DESIGN.md` extends the shared design base (`claude-ortak/tasarim/TEMEL.md`, kit v1.0) for an office suite: one
+visual identity for all modules (spec section 10), file-type meaning colours, layouts per breakpoint (phone
+bottom bar, desktop top bar and side navigation), document view vs. edit mode on touch. Compose tokens generated
+from `kit/tokens/fai.tokens.json` by a script (the kit has Flutter and Web outputs, no Compose yet). IBM Plex Sans
+and Mono (OFL), subset, with their size counted against the Android 30 MB and Web 5 MB budgets.
+
+Done when: the owner approves `DESIGN.md`; generated tokens are the only source of colour, type, spacing and
+radius in `app/`; a contrast test (≥ 4.5:1, every text colour on every surface, both themes) passes.
+
+Ask owner: theme default, follow the system theme (Android 10+, desktop, browser) or dark by default.
+
+### P2.5 Shell and navigation
+
+Efor: high
+
+All destinations of spec section 10 (Home, Recent Files, Documents, Presentations, Spreadsheets, PDF, File
+Converter, Archive, Settings) as empty-state screens. Phone: bottom bar with at most five entries, the rest under
+Home; tablet / desktop: side navigation. Android back and predictive back, desktop keyboard navigation, window
+size classes per `DESIGN.md`.
+
+Done when: every destination opens on Android, Linux and Web; screenshot tests cover each screen in both themes
+at 390x844 and 1920x950; no hard-coded colour or size (lint rule).
+
+Depends on: P2.4; the R1 gate.
+
+### P2.6 Localisation EN / TR
+
+Efor: medium
+
+Compose resources for English and Turkish, system language by default, override in Settings. Turkish casing
+(`İ` / `ı`) through locale-aware functions only.
+
+Done when: no user-visible literal outside resources (lint check); a test switches the language and finds no
+missing key; a casing test passes with `tr` locale.
+
+### P2.7 Screen package
+
+Efor: medium
+
+`[ux]` section for the shared screen package tool (`claude-ortak/arac/ux.sh`): screenshot runner on Compose
+Desktop, file names `<theme>_<size>_<screen>.png`, package root under `~/fai_notes/`, git hook keeps `guncel/`
+current.
+
+Done when: `ux.sh` produces the package for every P2.5 screen; a commit that changes a screen refreshes it.
+
+### P2.8 Budget tests
+
+Efor: high
+
+Scripts that measure and compare with section 7, writing one report per run: APK size; cold start to first frame
+(`am start -W`) and Home PSS (`dumpsys meminfo`) on the Galaxy A17 5G over adb; desktop first frame, installed
+size and RAM at rest on the native Linux machine; Web initial load (gzip). The desktop RAM budget gets its number
+from this measurement (owner approves).
+
+Done when: every Phase 2 budget in the exit criteria is measured on the named device and inside its budget; the
+report is committed; a deliberate regression makes the script fail.
+
+Depends on: P2.5; reference phone; native Linux machine.
+
+### P2.9 Phase 2 close
+
+Efor: medium
+
+Full CI once, budget report, screen package and `DESIGN.md` shown to the owner, risks R1 / R7 / R8 updated in
+`PHASE1_PROPOSAL.md` section 11, status note updated.
+
+Done when: the owner approves Phase 2.

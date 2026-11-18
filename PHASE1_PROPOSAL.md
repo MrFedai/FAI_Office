@@ -1,6 +1,6 @@
 # FAI_Office — Phase 1 Technical Architecture Proposal
 
-Status: **reviewed by the owner (2026-11-18): all decisions taken**, see the end of the document. Answers MASTER_SPEC section 15. Every number below comes from a
+Status: **approved by the owner (2026-11-18)**; decisions at the end of the document. Phase 2: `PHASE2_PLAN.md`. Answers MASTER_SPEC section 15. Every number below comes from a
 proof of concept in `poc/`; raw results and method are in `poc/RESULTS.md`, the license audit in
 `poc/LICENSE_AUDIT.md`. Anything not measured is marked *proposed* or *open*.
 

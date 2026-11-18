@@ -31,6 +31,8 @@ Decided at the Phase 1 review (2026-11-18, `PHASE1_PROPOSAL.md`):
     only; browsers Chrome / Edge 119, Firefox 120, Safari 18.2, cross-origin isolated; Linux Flatpak on the
     current freedesktop runtime and AppImage on glibc ≥ 2.35, `x86_64`.
 
+**Phase 1 approved by the owner on 2026-11-18.** Phase 2 plan: `PHASE2_PLAN.md`.
+
 ## 1. PROJECT IDENTITY
 
 Project name: FAI_Office
