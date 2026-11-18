@@ -30,7 +30,7 @@ for P2.8 (WSLg numbers do not count).
 
 ---
 
-### P2.1 Project skeleton and build — YAPILDI (dev c4881a6)
+### P2.1 Project skeleton and build — YAPILDI (dev 4a84b74)
 
 Efor: high
 
