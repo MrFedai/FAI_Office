@@ -1,6 +1,7 @@
 # FAI_Office — Phase 1 Technical Architecture Proposal
 
-Status: **draft for owner review** (2026-11-18). Answers MASTER_SPEC section 15. Every number below comes from a
+Status: **reviewed by the owner (2026-11-18): decisions 1–5 approved as recommended**; two Phase 1 items still
+open (reference phone model, minimum OS versions), see the end of the document. Answers MASTER_SPEC section 15. Every number below comes from a
 proof of concept in `poc/`; raw results and method are in `poc/RESULTS.md`, the license audit in
 `poc/LICENSE_AUDIT.md`. Anything not measured is marked *proposed* or *open*.
 
@@ -323,7 +324,10 @@ Phases 4 and 5 can run in parallel after 3. Nothing from Phase 7 onward may dela
 
 ---
 
-## Owner decisions requested at the Phase 1 review
+## Owner decisions at the Phase 1 review
+
+Recorded 2026-11-18. Approved as recommended: 1, 2, 3 and 5; 4 is open (model not named yet).
+
 
 1. Shell framework: Compose Multiplatform (recommended) or Flutter.
 2. Budget definitions: RAM as Android PSS including graphics; the PDF viewer cache rule; the proposed new
@@ -334,3 +338,19 @@ Phases 4 and 5 can run in parallel after 3. Nothing from Phase 7 onward may dela
 5. Office scope on Web: full office scope with the trimmed engine on demand (recommended; R3 met on the
    development PC, to be confirmed on a mid-range laptop), otherwise reduced scope (section 10). Also: whether
    R3's "≤ 10 s" counts the first-visit download or only the cached engine (measured: cached).
+
+Decided:
+
+* **Shell: Compose Multiplatform.** Condition stays: the 4 GB reference phone confirms the Android numbers (R1).
+* **Budgets:** RAM = Android PSS including graphics; PDF viewer decoded cache ≤ 64 MB, one copy; new budgets
+  Linux package ≤ 150 MB installed and desktop RAM (both after a native-Linux measurement), scroll ≤ 1 % janky
+  frames; Web office engine ≤ 60 MB gzip.
+* **Linux packaging:** Flatpak on Flathub with the engine as an extension, plus a full AppImage.
+* **Web office scope: full**, trimmed engine on demand; R3 is measured with the engine cached, the first-visit
+  download is bounded by the 60 MB budget and shown to the user. Confirmed on a mid-range laptop before R5,
+  otherwise reduced scope.
+
+Still open in Phase 1 (spec sections 0 and 7):
+
+* Reference phone: exact 4 GB model to name and acquire.
+* Minimum OS versions (Android API level, browsers, Linux baseline): not covered by this proposal yet.

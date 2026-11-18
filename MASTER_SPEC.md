@@ -17,7 +17,15 @@ These are settled. Do not reopen them unless Phase 1 measurements prove one impo
 6. **UI languages for the first release:** English and Turkish.
 7. **Performance budgets:** the numbers in section 7 stay provisional until Phase 1 measures them.
 
-Still open, to be decided in Phase 1: shell framework, office engine delivery on Web, minimum OS versions.
+Decided at the Phase 1 review (2026-11-18, `PHASE1_PROPOSAL.md`):
+
+8. **Shell framework: Compose Multiplatform** (Kotlin), on the condition that the 4 GB reference phone confirms
+   the Android memory numbers.
+9. **Office engine on Web: full office scope**, the trimmed LibreOffice WASM engine fetched on the first office
+   document and cached; reduced scope only if it fails R3 on a mid-range laptop before R5.
+10. **Linux packaging:** Flatpak with the office engine as an extension, plus a full AppImage.
+
+Still open, to be decided in Phase 1: minimum OS versions, the exact reference phone model.
 
 ## 1. PROJECT IDENTITY
 
