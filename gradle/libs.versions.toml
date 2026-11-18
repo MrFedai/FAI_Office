@@ -7,6 +7,10 @@ androidx-activity = "1.12.4"
 android-compileSdk = "37"
 android-targetSdk = "36"
 android-minSdk = "29"
+# Build-time only tools (lint, license check); not shipped.
+ktlint-gradle = "14.2.0"
+ktlint-cli = "1.8.0"
+detekt = "2.0.0-alpha.6"
 
 [libraries]
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
@@ -21,3 +25,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-kmp-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }

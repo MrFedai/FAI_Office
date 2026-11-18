@@ -11,8 +11,14 @@ kotlin {
     jvmToolchain(17)
     android {
         namespace = "org.faioffice.core"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-        minSdk = libs.versions.android.minSdk.get().toInt()
+        compileSdk =
+            libs.versions.android.compileSdk
+                .get()
+                .toInt()
+        minSdk =
+            libs.versions.android.minSdk
+                .get()
+                .toInt()
         withHostTest {}
     }
     jvm("desktop")

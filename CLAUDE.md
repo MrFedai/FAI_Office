@@ -21,5 +21,7 @@ Plan ve kararlar: `MASTER_SPEC.md` (bölüm 0 = kilitli kararlar). Durum notu: `
 
 ## Araçlar
 - Depo temizliği: `clear.sh` (listeler, y/N sorar).
-- Derleme: `source ~/dev/env.sh` sonra `./gradlew check :androidApp:assembleDebug :app:createDistributable :app:wasmJsBrowserDistribution`.
-  Çalıştır: masaüstü `./gradlew :app:run`, Web `./gradlew :app:wasmJsBrowserDevelopmentRun` (COOP/COEP başlıklı).
+- CI: `ci/all.sh` (lint, test, licenses, android, desktop, web; ilerleme basar, özet verir); tek adım `ci/all.sh web`
+  ya da `ci/web.sh`. Loglar `build/ci/`. GitHub Actions aynı betiği koşar (`.github/workflows/ci.yml`, `dev` push).
+  Biçim düzeltme: `./gradlew ktlintFormat`.
+- Çalıştır: masaüstü `./gradlew :app:run`, Web `./gradlew :app:wasmJsBrowserDevelopmentRun` (COOP/COEP başlıklı).

@@ -1,0 +1,4 @@
+# Deviations from detekt's default rules only.
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']

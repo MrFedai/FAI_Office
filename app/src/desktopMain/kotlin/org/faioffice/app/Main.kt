@@ -9,12 +9,13 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import org.faioffice.core.AppInfo
 
-fun main() = application {
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = AppInfo.NAME,
-        state = rememberWindowState(width = 1280.dp, height = 800.dp),
-    ) {
-        App()
+fun main() =
+    application {
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = AppInfo.NAME,
+            state = rememberWindowState(width = 1280.dp, height = 800.dp),
+        ) {
+            App()
+        }
     }
-}
