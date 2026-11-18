@@ -50,7 +50,7 @@ needs `compileSdk 37`, hence AGP 9.5.1 and Gradle 9.6.0; `targetSdk` stays 36. P
 Runtime dependencies: AndroidX, JetBrains Compose / Kotlin / skiko, Guava listenablefuture, JSpecify; all
 Apache-2.0.
 
-### P2.2 CI scripts
+### P2.2 CI scripts — YAPILDI (dev 79185c7)
 
 Efor: medium
 
@@ -63,6 +63,13 @@ Done when: `ci/all.sh` passes from a clean checkout; lowering the Wasm size limi
 dependency makes the license check fail.
 
 Ask owner: create the public GitHub remote now (CI runs on every push) or later (CI runs locally until R1).
+Answered 2026-11-18: now; https://github.com/MrFedai/FAI_Office (public, `dev` only).
+
+Result: `ci/all.sh` passes locally (2 min 23 s) and on GitHub Actions (6 min 8 s, cold cache). The license gate
+is our own Gradle task (`ci/license-check.gradle.kts`, POM licenses incl. parent POMs) because the
+dependency-license-report plugin fails on Gradle 9.6. Red runs checked: `WEB_LIMIT_KB=1000`, a GPL dependency
+(`mysql-connector-j`, reported as FORBIDDEN) and a Kotlin file without the MPL header each fail. Also checked: APK
+≤ 30 MB, desktop distribution ≤ 150 MB.
 
 ### P2.3 Run tooling (`/surum kur`)
 
