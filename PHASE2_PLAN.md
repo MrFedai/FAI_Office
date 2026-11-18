@@ -71,7 +71,7 @@ dependency-license-report plugin fails on Gradle 9.6. Red runs checked: `WEB_LIM
 (`mysql-connector-j`, reported as FORBIDDEN) and a Kotlin file without the MPL header each fail. Also checked: APK
 ≤ 30 MB, desktop distribution ≤ 150 MB.
 
-### P2.3 Run tooling (`/surum kur`)
+### P2.3 Run tooling (`/surum kur`) — YAPILDI (local config, devops-mcp 1bef00d)
 
 Efor: medium
 
@@ -80,6 +80,12 @@ scripts (`lint` as the gate, test jobs by path); `[surum]` with `list = "PHASE2_
 no release command in Phase 2. `.mcp.json` for the devops server. Backup through `devops-mcp/projects/fai-office/`.
 
 Done when: the devops server loads the project (`project_info`) and the gate job passes once.
+
+Result: `.devops.toml` and `.mcp.json` are local (`.git/info/exclude`), backed up in devops-mcp
+`projects/fai-office/`. Jobs: `lint` (gate, `ci/lint.sh`), `kmp_test` (argument `core` | `app`), `web`, `ci_all`
+(after merge), `release_dry` (main tree). Workers `claude_cli` / `claude_cli_b` are on the same account, so
+`accounts = 1`. `look` = `app/src/`, `DESIGN.md`; `design_check` comes with P2.7. `project_info` loads the project
+and `job_run lint` passed over MCP stdio; this session's devops tools stay off until the session is reopened.
 
 ### P2.4 DESIGN.md and design tokens
 
