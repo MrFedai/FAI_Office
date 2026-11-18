@@ -40,7 +40,16 @@ kotlin {
         named("desktopMain") {
             dependencies { implementation(compose.desktop.currentOs) }
         }
+        // Contrast test and token preview screenshots (ImageComposeScene) run on the desktop JVM only.
+        named("desktopTest") {
+            dependencies { implementation(libs.kotlin.test) }
+        }
     }
+}
+
+// Screenshots of the desktop tests: app/build/bakis/<theme>_<size>_<screen>.png.
+tasks.withType<Test>().configureEach {
+    systemProperty("bakis.dir", layout.buildDirectory.dir("bakis").get().asFile.absolutePath)
 }
 
 compose.desktop {
