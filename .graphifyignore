@@ -1,0 +1,10 @@
+# graphify kapsamı: kaynak kod; derleme çıktıları, Gradle önbellekleri ve üretilmiş dosyalar dışarıda.
+build/
+**/build/
+.gradle/
+.kotlin/
+kotlin-js-store/
+gradle/
+local.properties
+*.lock
+graphify-out/
