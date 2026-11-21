@@ -155,7 +155,10 @@ private fun ShellContent(
     modifier: Modifier,
 ) {
     val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focus.requestFocus() }
+    // At start, and when the information page opens or closes: the focused control left the composition, so the
+    // pane takes the focus back and the back keys keep working.
+    val opened = navigator.openedFile
+    LaunchedEffect(opened) { focus.requestFocus() }
     val phone = layout == ShellLayout.Phone
     val padY = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadY
     BoxWithConstraints(
@@ -170,7 +173,6 @@ private fun ShellContent(
             .focusable(),
     ) {
         val pageHeight = maxHeight - padY * 2
-        val opened = navigator.openedFile
         key(navigator.current, opened) {
             Box(
                 Modifier

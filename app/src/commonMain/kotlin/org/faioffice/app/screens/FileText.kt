@@ -27,6 +27,9 @@ import org.faioffice.app.resources.size_bytes
 import org.faioffice.app.resources.size_gb
 import org.faioffice.app.resources.size_kb
 import org.faioffice.app.resources.size_mb
+import org.faioffice.app.resources.viewer_phase_4
+import org.faioffice.app.resources.viewer_phase_5
+import org.faioffice.app.resources.viewer_phase_6
 import org.faioffice.app.theme.FaiTheme
 import org.faioffice.core.files.FileRef
 import org.faioffice.core.formats.FileFormat
@@ -41,8 +44,9 @@ fun currentLanguage(): String = LocalAppLocale.current.substringBefore('-').subs
 
 private const val KIB = 1024L
 private const val TEN = 10
+private const val HUNDRED = 100
 
-/** Byte count as the user reads it: "820 B", "412 KB", "3,8 MB" (Turkish decimal comma), "1.2 GB". */
+/** Byte count as the user reads it: "820 B", "412 KB", "18,4 MB" (Turkish decimal comma), "246 MB", "1.2 GB". */
 @Composable
 fun sizeText(bytes: Long?): String? {
     if (bytes == null) return null
@@ -55,7 +59,7 @@ fun sizeText(bytes: Long?): String? {
         unit++
     }
     val number =
-        if (unit == 0 || value >= TEN) {
+        if (unit == 0 || value >= HUNDRED) {
             value.toLong().toString()
         } else {
             val tenths = (value * TEN).toLong()
@@ -172,6 +176,15 @@ fun compatibilityText(format: FileFormat): StringResource =
         ModuleFamily.Viewer, ModuleFamily.Archive -> Res.string.compat_phase_5
         ModuleFamily.Documents, ModuleFamily.Spreadsheets, ModuleFamily.Presentations -> Res.string.compat_phase_6
         ModuleFamily.Unknown -> Res.string.compat_unsupported
+    }
+
+/** State-card sentence for a recognised format: the phase that brings its viewer; null for unknown content. */
+fun viewerPhaseText(format: FileFormat): StringResource? =
+    when (format.family) {
+        ModuleFamily.Pdf -> Res.string.viewer_phase_4
+        ModuleFamily.Viewer, ModuleFamily.Archive -> Res.string.viewer_phase_5
+        ModuleFamily.Documents, ModuleFamily.Spreadsheets, ModuleFamily.Presentations -> Res.string.viewer_phase_6
+        ModuleFamily.Unknown -> null
     }
 
 /** Folder part of a reference, split into segments; empty when the reference carries no readable folder. */

@@ -236,7 +236,7 @@ class SampleFiles(
         library.addFolder(projects, "Projeler")
 
         val downloads = fake.addFolder("/Users/ayse/İndirilenler")
-        file("invoice", "/Users/ayse/İndirilenler/Fatura_Kasım_2026.pdf", 184_320, NOW - 30 * HOUR)
+        file("invoice", "/Users/ayse/İndirilenler/Fatura_Kasım_2026.pdf", 184_320, NOW - 30 * HOUR, PDF)
         file(
             "annual",
             "/Users/ayse/İndirilenler/Annual Report 2025 — Sustainability and Governance.pdf",

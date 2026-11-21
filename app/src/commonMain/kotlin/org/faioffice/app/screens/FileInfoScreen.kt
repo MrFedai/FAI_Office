@@ -46,6 +46,8 @@ import org.faioffice.app.resources.info_size
 import org.faioffice.app.resources.info_unknown
 import org.faioffice.app.resources.info_unreadable_body
 import org.faioffice.app.resources.info_unreadable_title
+import org.faioffice.app.resources.info_unsupported_body
+import org.faioffice.app.resources.info_unsupported_title
 import org.faioffice.app.shell.FaiIcon
 import org.faioffice.app.shell.FaiIcons
 import org.faioffice.app.shell.Hairline
@@ -182,6 +184,8 @@ private class StateLook(
     val color: Color,
     val title: StringResource,
     val body: StringResource,
+    /** Recognised format named after the title ("Recognised · PDF"). */
+    val format: FileFormat? = null,
 )
 
 @Composable
@@ -193,12 +197,17 @@ private fun lookOf(view: InfoView): StateLook? {
         }
 
         InfoState.Ok -> {
-            StateLook(
-                FaiIcons.circleCheck,
-                c.pos,
-                Res.string.info_ok_title,
-                compatibilityText(view.format ?: FileFormat.Unknown),
-            )
+            val phase = viewerPhaseText(view.format ?: FileFormat.Unknown)
+            if (phase == null) {
+                StateLook(
+                    FaiIcons.circleAlert,
+                    c.warn,
+                    Res.string.info_unsupported_title,
+                    Res.string.info_unsupported_body,
+                )
+            } else {
+                StateLook(FaiIcons.circleCheck, c.pos, Res.string.info_ok_title, phase, view.format)
+            }
         }
 
         InfoState.Missing -> {
@@ -244,7 +253,9 @@ private fun StateCard(
         ) {
             FaiIcon(look.icon, look.color)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FaiSpace.s6)) {
-                BasicText(stringResource(look.title), style = FaiTheme.type.cardTitle.copy(color = look.color))
+                val title = stringResource(look.title)
+                val named = look.format?.let { "$title · ${formatName(it)}" } ?: title
+                BasicText(named, style = FaiTheme.type.cardTitle.copy(color = look.color))
                 BasicText(stringResource(look.body), style = bodyStyle.copy(color = colors.text2))
                 if (view.state == InfoState.PermissionLost) {
                     Row(Modifier.padding(top = FaiSpace.s4)) {

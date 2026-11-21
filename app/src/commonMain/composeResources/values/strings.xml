@@ -137,7 +137,7 @@
     <string name="family_presentations">Presentation</string>
     <string name="family_pdf">PDF</string>
     <string name="family_archive">Archive</string>
-    <string name="family_viewer">Image, text or e-book</string>
+    <string name="family_viewer">Image or text</string>
     <string name="family_unknown">Unknown</string>
     <string name="size_bytes">%1$s B</string>
     <string name="size_kb">%1$s KB</string>
@@ -145,4 +145,9 @@
     <string name="size_gb">%1$s GB</string>
     <string name="dialog_open_files">Open files</string>
     <string name="dialog_add_folder">Choose a folder to add</string>
+    <string name="viewer_phase_4">The viewer arrives in Phase 4.</string>
+    <string name="viewer_phase_5">The viewer arrives in Phase 5.</string>
+    <string name="viewer_phase_6">The viewer arrives in Phase 6.</string>
+    <string name="info_unsupported_title">Not supported</string>
+    <string name="info_unsupported_body">No part of FAI Office opens this format.</string>
 </resources>

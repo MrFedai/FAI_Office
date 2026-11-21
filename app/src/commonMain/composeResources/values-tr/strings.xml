@@ -109,9 +109,9 @@
     <string name="info_compat">Uyumluluk</string>
     <string name="info_unknown">Bilinmiyor</string>
     <string name="info_reading">Dosya okunuyor…</string>
-    <string name="compat_phase_4">Tanındı; görüntüleyici Faz 4\'te geliyor.</string>
-    <string name="compat_phase_5">Tanındı; görüntüleyici Faz 5\'te geliyor.</string>
-    <string name="compat_phase_6">Tanındı; görüntüleyici Faz 6\'da geliyor.</string>
+    <string name="compat_phase_4">Tanındı; görüntüleyici Faz 4'te geliyor.</string>
+    <string name="compat_phase_5">Tanındı; görüntüleyici Faz 5'te geliyor.</string>
+    <string name="compat_phase_6">Tanındı; görüntüleyici Faz 6'da geliyor.</string>
     <string name="compat_unsupported">Desteklenmiyor: FAI Office bu biçimi açmıyor.</string>
     <string name="info_ok_title">Tanındı</string>
     <string name="info_missing_title">Dosya bulunamadı</string>
@@ -137,7 +137,7 @@
     <string name="family_presentations">Sunum</string>
     <string name="family_pdf">PDF</string>
     <string name="family_archive">Arşiv</string>
-    <string name="family_viewer">Görsel, metin ya da e-kitap</string>
+    <string name="family_viewer">Görsel ya da metin</string>
     <string name="family_unknown">Bilinmiyor</string>
     <string name="size_bytes">%1$s B</string>
     <string name="size_kb">%1$s KB</string>
@@ -145,4 +145,9 @@
     <string name="size_gb">%1$s GB</string>
     <string name="dialog_open_files">Dosya aç</string>
     <string name="dialog_add_folder">Eklenecek klasörü seçin</string>
+    <string name="viewer_phase_4">Görüntüleyici Faz 4'te geliyor.</string>
+    <string name="viewer_phase_5">Görüntüleyici Faz 5'te geliyor.</string>
+    <string name="viewer_phase_6">Görüntüleyici Faz 6'da geliyor.</string>
+    <string name="info_unsupported_title">Desteklenmiyor</string>
+    <string name="info_unsupported_body">FAI Office bu biçimi açmıyor.</string>
 </resources>
