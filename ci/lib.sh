@@ -16,11 +16,13 @@ run_gradle() {
     local label=$1
     shift
     local log="$LOG_DIR/$label.log" total n=0 start=$SECONDS line t eta
-    total=$(./gradlew "$@" --dry-run -q --console=plain 2>/dev/null | grep -c ' SKIPPED$' || true)
+    # tr: on Windows (Git Bash, ci/windows.sh) Gradle ends its lines with CR LF.
+    total=$(./gradlew "$@" --dry-run -q --console=plain 2>/dev/null | tr -d '\r' | grep -c ' SKIPPED$' || true)
     [ "$total" -gt 0 ] || total=1
     echo "== $label: $total Gradle tasks (log: build/ci/$label.log)"
     set +e
     ./gradlew "$@" --console=plain 2>&1 | tee "$log" | while IFS= read -r line; do
+        line=${line%$'\r'}
         case $line in
         "> Task "*)
             n=$((n + 1))

@@ -65,12 +65,22 @@ compose.resources {
 compose.desktop {
     application {
         mainClass = "org.faioffice.app.MainKt"
+        // jpackage builds only for the OS it runs on: AppImage on Linux, MSI on Windows (CI windows job,
+        // ci/windows.sh; WiX is fetched by the Compose plugin as a build tool and does not enter the package).
         nativeDistributions {
-            targetFormats(TargetFormat.AppImage)
+            targetFormats(TargetFormat.AppImage, TargetFormat.Msi)
             packageName = "fai-office"
             packageVersion = "0.2.0"
             licenseFile.set(rootProject.file("LICENSE"))
             modules("java.instrument", "jdk.unsupported")
+            windows {
+                menuGroup = "FAI Office"
+                // Per-user install: no administrator rights; the same UUID lets a newer MSI replace an older one.
+                perUserInstall = true
+                dirChooser = true
+                shortcut = true
+                upgradeUuid = "6f1d8a52-3c7e-4b9a-9e41-0d2b7c5f8a13"
+            }
         }
         buildTypes.release.proguard { isEnabled.set(true) }
     }

@@ -11,11 +11,16 @@ import java.io.File
 import kotlin.system.exitProcess
 
 private const val MILLIS_PER_SECOND = 1000L
+private const val DEFAULT_HOLD_SECONDS = 30L
 
 /**
  * Budget measurement hook for ci/budget.sh (MASTER_SPEC section 7). Inert unless FAI_BUDGET_PROBE=<seconds> is set:
- * then it prints the time from process start to the second frame, waits <seconds> at rest, prints the process PSS
- * (Linux /proc) and exits.
+ * then it prints the time from process start to the second frame and waits <seconds> at rest. Where Linux /proc
+ * exists it prints the process PSS and exits. Elsewhere (Windows) nothing in the JVM reads the working set, so it
+ * prints `fai_budget at_rest pid <pid>` and stays open FAI_BUDGET_HOLD seconds (default 30) for the caller to read
+ * the process memory from outside (ci/budget.sh: PowerShell Get-Process), then exits.
+ * FAI_BUDGET_OUT=<file> also appends every line to that file: a Windows GUI launcher started from WSL may have no
+ * usable stdout.
  */
 @Composable
 internal fun BudgetProbe() {
@@ -23,17 +28,24 @@ internal fun BudgetProbe() {
     LaunchedEffect(Unit) {
         withFrameNanos { }
         withFrameNanos { }
-        val start =
-            ProcessHandle
-                .current()
-                .info()
-                .startInstant()
-                .map { it.toEpochMilli() }
-        if (start.isPresent) println("fai_budget first_frame_ms ${System.currentTimeMillis() - start.get()}")
+        val process = ProcessHandle.current()
+        val start = process.info().startInstant().map { it.toEpochMilli() }
+        if (start.isPresent) probeLine("fai_budget first_frame_ms ${System.currentTimeMillis() - start.get()}")
         delay(settleSeconds * MILLIS_PER_SECOND)
-        pssKb()?.let { println("fai_budget pss_kb $it") }
+        val pss = pssKb()
+        if (pss != null) {
+            probeLine("fai_budget pss_kb $pss")
+        } else {
+            probeLine("fai_budget at_rest pid ${process.pid()}")
+            delay((System.getenv("FAI_BUDGET_HOLD")?.toLongOrNull() ?: DEFAULT_HOLD_SECONDS) * MILLIS_PER_SECOND)
+        }
         exitProcess(0)
     }
+}
+
+private fun probeLine(line: String) {
+    println(line)
+    System.getenv("FAI_BUDGET_OUT")?.let { File(it).appendText(line + "\n") }
 }
 
 /** Proportional set size of this process in KB, from /proc/self/smaps_rollup; null where that file does not exist. */
