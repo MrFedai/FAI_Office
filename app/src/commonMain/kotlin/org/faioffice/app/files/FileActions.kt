@@ -27,6 +27,12 @@ interface FileActions {
         ref: FileRef,
         mimeType: String?,
     ): Boolean
+
+    /** Whether [showInFolder] is available here (desktop; not Android or Web). */
+    val canShowInFolder: Boolean get() = false
+
+    /** Opens the system file manager at [ref]'s folder with [ref] selected (desktop, P3.5). */
+    fun showInFolder(ref: FileRef): Boolean = false
 }
 
 /** No dialogs (tests, a platform before its P3.5 / P3.6 implementation). */

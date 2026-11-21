@@ -5,8 +5,9 @@
 # Windows x64 desktop build: the GitHub Actions `windows` job runs it under Git Bash (.github/workflows/ci.yml).
 # jpackage does not cross-build, so this needs Windows; on a Linux machine use ci/desktop.sh.
 #   1. app image (createDistributable: jlink'ed JVM + app) and MSI installer (packageMsi; WiX is fetched by the
-#      Compose plugin as a build tool and does not enter the package)
-#   2. desktop tests on Windows, screenshots into app/build/bakis (P2.5 screens, both themes and sizes)
+#      Compose plugin as a build tool and does not enter the package) with its "Open with" entries (P3.5)
+#   2. desktop tests on Windows, screenshots into app/build/bakis (P2.5 screens, both themes and sizes); the core
+#      file tests run on NTFS here, including a Turkish file name on a path longer than 260 characters (P3.5)
 #   3. installed size of the app image against BUDGET_WINDOWS_PKG_MB (ci/budgets.env; WINDOWS_LIMIT_KB overrides)
 # The CI job uploads the app image (fai-office-windows), the MSI (fai-office-windows-msi) and the shots
 # (windows-shots); ci/windows-run.sh downloads the image onto the owner's PC.
@@ -26,6 +27,10 @@ exe="$DESKTOP_DIST/fai-office/fai-office.exe"
 for msi in app/build/compose/binaries/main/msi/*.msi; do
     [ -f "$msi" ] || { echo "!! no MSI in app/build/compose/binaries/main/msi"; exit 1; }
     printf '== MSI installer: %s, %d KB download\n' "$(basename "$msi")" $(($(wc -c <"$msi") / 1024))
+    # "Open with" entries (P3.5, app/msi/open-with.wxs): the registry keys sit in the MSI string pool as plain text.
+    entries=$(grep -ac 'OpenWithProgids' "$msi" || true)
+    [ "${entries:-0}" -gt 0 ] || { echo "!! no Open with entries in $(basename "$msi")"; exit 1; }
+    echo "== MSI Open with entries present"
 done
 
 echo "== [2/3] desktop tests on Windows (screenshots: app/build/bakis)"
