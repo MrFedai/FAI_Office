@@ -257,6 +257,9 @@ Definitions:
   laptop in Chromium (Web), from user action to the first complete frame.
 * Janky frames: `dumpsys SurfaceFlinger --timestats`, share of the app layer's frames that missed their deadline
   while scrolling a 100-page PDF.
+* Desktop package size is the installed folder as shipped. The AppCDS archive the desktop app writes into it on its
+  first start (about 41 MB; it cuts the JVM start, risk R7) is a regenerable cache and is not counted; the budget
+  report shows it on its own (owner decision 2026-11-21).
 
 Standing requirements:
 
