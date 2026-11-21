@@ -246,7 +246,7 @@ The numbers below were measured in Phase 1 and approved at the Phase 1 review (2
 | Web office engine download, compressed                      | ≤ 60 MB, on demand, size shown before download |
 | Web: typical 20-page DOCX laid out, engine cached, mid-range laptop | ≤ 10 s, browser < 1.5 GB |
 | Desktop package (Windows, Linux), light core, installed     | ≤ 150 MB (confirmed by a native Windows measurement; Linux when a native machine is named) |
-| Desktop RAM at rest                                         | set after a native Windows measurement (Phase 2) |
+| Desktop RAM at rest                                         | ≤ 300 MB (native Windows working set 246 MB, owner decision 2026-11-21) |
 
 Definitions:
 
