@@ -37,3 +37,10 @@ kotlin {
         }
     }
 }
+
+// Turkish file names in the desktop file tests (P3.5): on Linux the JVM decodes path names with the locale's
+// charset (sun.jnu.encoding), so a C / POSIX locale would turn them into InvalidPathException. Windows paths are
+// UTF-16 and need nothing.
+tasks.named<Test>("desktopTest") {
+    if (!System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) environment("LC_ALL", "C.UTF-8")
+}
