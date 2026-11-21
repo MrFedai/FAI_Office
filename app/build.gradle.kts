@@ -122,6 +122,8 @@ tasks.withType<AbstractJPackageTask>().matching { it.name == "packageMsi" }.conf
     val openWith = layout.projectDirectory.file("msi/open-with.wxs")
     val work = layout.buildDirectory.dir("msi-open-with")
     val ciLogs = rootProject.layout.buildDirectory.dir("ci/msi-open-with")
+    val appImage = layout.buildDirectory.dir("compose/binaries/main/app/fai-office")
+    dependsOn("createDistributable")
     inputs.file(openWith)
     doLast {
         val home = packagingJdk.get()
@@ -165,11 +167,20 @@ tasks.withType<AbstractJPackageTask>().matching { it.name == "packageMsi" }.conf
                 .readLines()
                 .filter { it.isNotBlank() }
         // Compose's --resource-dir and any --temp go with their values, --verbose too: all three come back below.
-        val withValue = setOf("--resource-dir", "--temp")
+        // The app image options go as well: Compose deletes its --input folder after its own run ("main jar does not
+        // exist", run 44955332780), so this run packages the createDistributable image (same configuration) instead.
+        val withValue =
+            setOf("--resource-dir", "--temp") +
+                setOf("--input", "--runtime-image", "--java-options", "--main-jar", "--main-class", "--icon") +
+                setOf("--arguments", "--add-modules", "--jlink-options", "--app-image")
+        val image = appImage.get().asFile
+        check(image.resolve("fai-office.exe").isFile) { "no app image at $image: createDistributable must run first" }
         val args =
             composeLines.filterIndexed { n, line ->
                 line.trim() !in withValue + "--verbose" && composeLines.getOrNull(n - 1)?.trim() !in withValue
-            } + listOf("--resource-dir", quoted(resourceDir), "--temp", quoted(tempDir), "--verbose")
+            } +
+                listOf("--app-image", quoted(image)) +
+                listOf("--resource-dir", quoted(resourceDir), "--temp", quoted(tempDir), "--verbose")
         val argsFile = workDir.resolve("packageMsi.args.txt").apply { writeText(args.joinToString("\n")) }
 
         val out = msiDir.get().asFile
