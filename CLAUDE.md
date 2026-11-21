@@ -25,3 +25,4 @@ Plan ve kararlar: `MASTER_SPEC.md` (bölüm 0 = kilitli kararlar). Durum notu: `
   ya da `ci/web.sh`. Loglar `build/ci/`. GitHub Actions aynı betiği koşar (`.github/workflows/ci.yml`, `dev` push).
   Biçim düzeltme: `./gradlew ktlintFormat`.
 - Çalıştır: masaüstü `./gradlew :app:run`, Web `./gradlew :app:wasmJsBrowserDevelopmentRun` (COOP/COEP başlıklı).
+- Windows: CI `windows` işi (`ci/windows.sh`, imaj + MSI); sahibin PC'sinde `ci/windows-run.sh` (WSL'den son `dev` CI imajını indirir, `%LOCALAPPDATA%\FAI_Office\ci-build`'e kurar, başlatır); ölçüm `ci/budget.sh` adım 5.

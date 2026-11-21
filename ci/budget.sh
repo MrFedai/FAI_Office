@@ -15,10 +15,14 @@
 #                      what is installed). Several devices: ANDROID_SERIAL picks one.
 #   Linux + display    desktop first frame and RAM at rest (FAI_BUDGET_PROBE hook in the desktop app); under WSL
 #                      (WSLg) it is reported but not counted: the budget is for a native Linux desktop.
+#   Windows PC (WSL)   installed size, first frame and RAM at rest of the CI Windows image that ci/windows-run.sh
+#                      installed (%LOCALAPPDATA%\FAI_Office\ci-build, or WIN_INSTALL_DIR); RAM is the process working
+#                      set read with PowerShell Get-Process (no /proc on Windows). No image: "not measured".
 # Knobs: BUDGET_RUNS (timed runs, default 5), BUDGET_SETTLE_S (seconds at rest before RAM, default 5),
 #        BUDGET_REPORT_DIR (default reports/budget), BUDGET_REF_MODEL_RE (reference model, default SM-A556),
 #        ADB (adb binary, default from PATH).
 source "$(dirname "$0")/lib.sh"
+source "$ROOT/ci/windows-lib.sh"
 
 RUNS=${BUDGET_RUNS:-5}
 SETTLE=${BUDGET_SETTLE_S:-5}
@@ -140,7 +144,7 @@ android_measure() {
 }
 android_measure
 
-echo "== [5/5] desktop first frame and RAM at rest"
+echo "== [5/5] desktop first frame and RAM at rest (Linux, Windows)"
 desktop_measure() {
     local bin="$DESKTOP_DIST/fai-office/bin/fai-office" reason="" where counted=1 note="" i out ff pss
     local frames=() psses=()
@@ -183,6 +187,49 @@ desktop_measure() {
     )" "$where" "$counted" "${note:-at rest after ${SETTLE} s}"
 }
 desktop_measure
+
+windows_measure() {
+    local inst="" exe reason="" where i ff ws priv frames=() wss=() privs=() key
+    if ! win_reachable; then
+        reason="no Windows PC reachable (WSL interop)"
+    elif ! inst=$(win_install_dir); then
+        reason="%LOCALAPPDATA% not readable from Windows"
+    elif [ ! -f "$inst/$WIN_APP/$WIN_APP.exe" ]; then
+        reason="no Windows image (ci/windows-run.sh installs the CI build)"
+    elif [ -n "$(win_running_from "$inst")" ]; then
+        reason="FAI Office is already running from the CI build folder (close it)"
+    fi
+    if [ -n "$reason" ]; then
+        echo "   Windows: $reason: Windows rows not measured"
+        for key in windows_pkg_mb windows_cold_start_ms windows_ram_mb; do row "$key" "" "–" 1 "$reason"; done
+        return 0
+    fi
+    exe="$inst/$WIN_APP/$WIN_APP.exe"
+    where="$(win_describe), native; CI image $(cat "$inst/BUILD.txt" 2>/dev/null || echo "of unknown build")"
+    echo "   Windows: $where"
+    row windows_pkg_mb "$(mb "$(du -sb "$inst/$WIN_APP" | cut -f1)")" "$where" 1 ""
+    echo "   warm-up launch (not counted: first start after install, antivirus scan)"
+    win_probe "$exe" "$SETTLE" >/dev/null
+    for i in $(seq 1 "$RUNS"); do
+        read -r ff ws priv <<<"$(win_probe "$exe" "$SETTLE")"
+        printf '   run %d/%d: first frame %s ms, working set after %s s: %s bytes, private bytes %s\n' "$i" "$RUNS" \
+            "$ff" "$SETTLE" "$ws" "$priv"
+        [ "$ff" = "?" ] || frames+=("$ff")
+        [ "$ws" = "?" ] || wss+=("$(mb "$ws")")
+        [ "$priv" = "?" ] || privs+=("$(mb "$priv")")
+    done
+    row windows_cold_start_ms "$(
+        IFS=,
+        echo "${frames[*]}"
+    )" "$where" 1 "${#frames[@]} launches, warm-up excluded"
+    row windows_ram_mb "$(
+        IFS=,
+        echo "${wss[*]}"
+    )" "$where" 1 "at rest after ${SETTLE} s; private bytes median $(
+        [ ${#privs[@]} -gt 0 ] && printf '%s\n' "${privs[@]}" | median | xargs printf '%.1f' || echo "?"
+    ) MB"
+}
+windows_measure
 
 sha=$(git rev-parse --short HEAD)
 git diff --quiet HEAD -- . ":(exclude)$REPORT_DIR" || sha="$sha-dirty"

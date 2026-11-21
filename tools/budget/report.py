@@ -49,10 +49,29 @@ METRICS = {
         "createDistributable app image (jlink'ed JVM + app), du -sb; the folder a package installs",
     ),
     "desktop_ram_mb": (
-        "Desktop RAM at rest",
+        "Linux desktop RAM at rest",
         "MB",
         "BUDGET_DESKTOP_RAM_MB",
         "process PSS after the settle time (FAI_BUDGET_PROBE), median",
+    ),
+    "windows_pkg_mb": (
+        "Windows package, installed",
+        "MB",
+        "BUDGET_WINDOWS_PKG_MB",
+        "CI app image (createDistributable on windows-latest) as installed on the PC, du -sb",
+    ),
+    "windows_cold_start_ms": (
+        "Windows cold start to first frame",
+        "ms",
+        "BUDGET_COLD_START_MS",
+        "process start to second frame (FAI_BUDGET_PROBE), median",
+    ),
+    "windows_ram_mb": (
+        "Windows RAM at rest",
+        "MB",
+        "BUDGET_DESKTOP_RAM_MB",
+        "process working set (Get-Process WorkingSet64: resident pages, shared ones in full, unlike Linux PSS) "
+        "after the settle time (FAI_BUDGET_PROBE), median",
     ),
     "web_gzip_mb": ("Web initial load", "MB", "BUDGET_WEB_GZIP_MB", "distribution without source maps, gzip -9"),
 }
