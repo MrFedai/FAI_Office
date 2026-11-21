@@ -6,6 +6,7 @@ cd "$ROOT"
 if [ -f "$HOME/dev/env.sh" ]; then source "$HOME/dev/env.sh"; fi # local machine; GitHub Actions brings its own
 LOG_DIR="$ROOT/build/ci"
 mkdir -p "$LOG_DIR"
+source "$ROOT/ci/budgets.env" # MASTER_SPEC section 7 numbers, shared by the size gates and ci/budget.sh
 
 mmss() { printf '%d:%02d' $(($1 / 60)) $(($1 % 60)); }
 
@@ -40,6 +41,23 @@ run_gradle() {
         return "$status"
     fi
     echo "== $label passed in $(mmss $((SECONDS - start)))"
+}
+
+# Sizes of the built artifacts, in bytes; the size gates (android, desktop, web) and ci/budget.sh measure the same way.
+APK_DIR=androidApp/build/outputs/apk/release
+DESKTOP_DIST=app/build/compose/binaries/main/app
+WEB_DIST=app/build/dist/wasmJs/productionExecutable
+apk_file() { ls "$APK_DIR"/*.apk | head -1; }
+apk_bytes() { stat -c%s "$(apk_file)"; }
+# Distribution folder of createDistributable (jlink'ed JVM + app): what a package installs.
+desktop_bytes() { du -sb "$DESKTOP_DIST" | cut -f1; }
+# Web first load: every file of the distribution except source maps, each gzip -9.
+web_gzip_bytes() {
+    local total=0 f
+    while IFS= read -r -d '' f; do
+        total=$((total + $(gzip -9c "$f" | wc -c)))
+    done < <(find "$WEB_DIST" -type f ! -name '*.map' -print0)
+    echo "$total"
 }
 
 # check_size <label> <bytes> <limit-bytes>
