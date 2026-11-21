@@ -41,11 +41,23 @@ class LibraryStore(
     private var loaded = false
 
     /** Recent entries, newest first (most recently opened at the front). */
-    suspend fun recents(): List<RecentEntry> = mutex.withLock { load(); data.recents }
+    suspend fun recents(): List<RecentEntry> =
+        mutex.withLock {
+            load()
+            data.recents
+        }
 
-    suspend fun folders(): List<LibraryFolder> = mutex.withLock { load(); data.folders }
+    suspend fun folders(): List<LibraryFolder> =
+        mutex.withLock {
+            load()
+            data.folders
+        }
 
-    suspend fun rememberRecent(): Boolean = mutex.withLock { load(); data.rememberRecent }
+    suspend fun rememberRecent(): Boolean =
+        mutex.withLock {
+            load()
+            data.rememberRecent
+        }
 
     /**
      * Notes that [ref] was opened now: one entry per reference, moved to the front (name, format and size are
@@ -107,7 +119,8 @@ class LibraryStore(
             load()
             val old = data.folders.firstOrNull { it.ref == ref }
             val folder = LibraryFolder(ref, name, old?.addedEpochMillis ?: clock())
-            val folders = if (old == null) data.folders + folder else data.folders.map { if (it.ref == ref) folder else it }
+            val folders =
+                if (old == null) data.folders + folder else data.folders.map { if (it.ref == ref) folder else it }
             mutate(data.copy(folders = folders))
         }
 
@@ -124,13 +137,17 @@ class LibraryStore(
      */
     suspend fun stateOf(ref: FileRef): EntryState =
         when (val result = access.info(ref)) {
-            is FileResult.Success -> EntryState.Available
-            is FileResult.Failure ->
+            is FileResult.Success -> {
+                EntryState.Available
+            }
+
+            is FileResult.Failure -> {
                 when (result.error) {
                     FileError.PermissionLost -> EntryState.PermissionLost
                     FileError.NotFound, is FileError.WrongKind, is FileError.IoError -> EntryState.Missing
-                    FileError.Locked, FileError.ReadOnly, FileError.AlreadyExists, FileError.NoSpace -> EntryState.Available
+                    else -> EntryState.Available
                 }
+            }
         }
 
     /** Recent entries (newest first) with their state, each checked now. */

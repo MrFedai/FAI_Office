@@ -56,7 +56,12 @@ class LibraryStoreFaultTest {
             val fake = InMemoryFileAccess()
             val faulty = FaultyFileAccess(fake)
             val store =
-                LibraryStore(faulty, SafeSave(faulty, fake.addFolder("/k")), fake.ref("/s.txt"), fake.ref("/s.damaged")) { 1L }
+                LibraryStore(
+                    faulty,
+                    SafeSave(faulty, fake.addFolder("/k")),
+                    fake.ref("/s.txt"),
+                    fake.ref("/s.damaged"),
+                ) { 1L }
             val a = fake.addFile("/a.docx", byteArrayOf(1))
             faulty.faults = { op, _ -> if (op == FileOp.Info) FileError.PermissionLost else null }
             assertEquals(EntryState.PermissionLost, store.stateOf(a))
@@ -75,7 +80,8 @@ class LibraryStoreFaultTest {
             val faulty = FaultyFileAccess(fake)
             val original = "FAI-LIBRARY 2\nremember\t1\n".encodeToByteArray()
             val storeRef = fake.addFile("/s.txt", original)
-            val store = LibraryStore(faulty, SafeSave(faulty, fake.addFolder("/k")), storeRef, fake.ref("/s.damaged")) { 1L }
+            val store =
+                LibraryStore(faulty, SafeSave(faulty, fake.addFolder("/k")), storeRef, fake.ref("/s.damaged")) { 1L }
             faulty.faults = { op, _ -> if (op == FileOp.Read) FileError.Locked else null }
             assertFalse(store.recordOpened(fake.ref("/a.docx"), "a", FileFormat.Docx, null))
             assertTrue(fake.contents(storeRef)!!.contentEquals(original))
@@ -115,7 +121,10 @@ class FolderScanTest {
             val docs = fake.scanFolder(fake.ref("/r"), family = ModuleFamily.Documents)
             assertEquals(
                 setOf("a.docx", "e.docx", "f.docx"),
-                assertIs<FileResult.Success<FolderScan>>(docs).value.files.map { it.info.name }.toSet(),
+                assertIs<FileResult.Success<FolderScan>>(docs)
+                    .value.files
+                    .map { it.info.name }
+                    .toSet(),
             )
         }
 
@@ -140,7 +149,8 @@ class FolderScanTest {
                 fake.scanFolder(fake.ref("/yok")),
             )
             val faulty = FaultyFileAccess(fake)
-            faulty.faults = { op, ref -> if (op == FileOp.List && ref.location == "/r/d1") FileError.PermissionLost else null }
+            faulty.faults =
+                { op, ref -> if (op == FileOp.List && ref.location == "/r/d1") FileError.PermissionLost else null }
             val scan = assertIs<FileResult.Success<FolderScan>>(faulty.scanFolder(fake.ref("/r"))).value
             assertEquals(3, scan.files.size)
             assertEquals(1, scan.skippedFolders)

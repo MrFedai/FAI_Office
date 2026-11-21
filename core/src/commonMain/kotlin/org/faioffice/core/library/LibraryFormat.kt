@@ -20,7 +20,11 @@ internal object LibraryFormat {
 
     fun encode(data: LibraryData): ByteArray {
         val out = StringBuilder()
-        out.append(MAGIC).append(' ').append(VERSION).append('\n')
+        out
+            .append(MAGIC)
+            .append(' ')
+            .append(VERSION)
+            .append('\n')
         out.append("remember\t").append(if (data.rememberRecent) '1' else '0').append('\n')
         for (e in data.recents) {
             out
@@ -37,9 +41,8 @@ internal object LibraryFormat {
                 ).append('\n')
         }
         for (f in data.folders) {
-            out
-                .append(listOf("folder", escape(f.ref.serialize()), escape(f.name), f.addedEpochMillis.toString()).joinToString("\t"))
-                .append('\n')
+            val fields = listOf("folder", escape(f.ref.serialize()), escape(f.name), f.addedEpochMillis.toString())
+            out.append(fields.joinToString("\t")).append('\n')
         }
         return out.toString().encodeToByteArray()
     }

@@ -66,7 +66,8 @@ abstract class LibraryStoreContract {
         val clock = Clock()
 
         /** A new store on the same folder, as after an app restart or Android process death. */
-        fun store(): LibraryStore = LibraryStore(f.access, SafeSave(f.access, f.journal), f.storeFile, f.damagedFile, clock::tick)
+        fun store(): LibraryStore =
+            LibraryStore(f.access, SafeSave(f.access, f.journal), f.storeFile, f.damagedFile, clock::tick)
 
         suspend fun LibraryStore.open(
             ref: FileRef,
@@ -176,7 +177,10 @@ abstract class LibraryStoreContract {
     fun migratesFromVersion1() =
         run {
             val a = f.document("a.docx")
-            val v1 = "FAI-LIBRARY 1\nrecent\t${a.serialize()}\tEski.docx\tDocx\t5\t777\nrecent\tpath:/x/y.pdf\tY.pdf\tPdf\t-\t700\n"
+            val v1 =
+                "FAI-LIBRARY 1\n" +
+                    "recent\t${a.serialize()}\tEski.docx\tDocx\t5\t777\n" +
+                    "recent\tpath:/x/y.pdf\tY.pdf\tPdf\t-\t700\n"
             f.writeStore(v1.encodeToByteArray())
             val s = store()
             val recents = s.recents()
