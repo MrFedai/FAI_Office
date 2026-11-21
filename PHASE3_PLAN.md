@@ -201,7 +201,7 @@ trip and a file held open by another program (Windows: `Locked`, POSIX: saved) i
 `ci/windows.sh` now runs on the Windows runner (`:core:desktopTest`). The UI for recovery and the warning is P3.8;
 the Android SAF implementation (backup folder in app-private storage) is P3.4.
 
-### P3.4 Android file access
+### P3.4 Android file access — YAPILDI (dev ca6807b)
 
 Efor: high
 
