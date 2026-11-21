@@ -67,6 +67,25 @@ The design (why a reference type and not paths, how each platform maps) is writt
 Done when: the API compiles for Android, desktop and Wasm; one shared contract test suite runs against the fake
 and, on desktop, against real files in a temp directory; no platform type appears in `commonMain`.
 
+Result: `org.faioffice.core.files` in `core/commonMain`. The app holds a `FileRef` (kind + opaque location,
+`serialize()` / `parse()` as `<tag>:<location>`), never a path: an Android document is a content URI with no file
+name or folder, a Web file is a session handle, so name, size, time, MIME and `writable` always come from
+`FileAccess.info` (`FileInfo`). Mapping: desktop `path:` = absolute normalised `java.nio` path (Windows and Linux,
+`DesktopFileAccess` in `desktopMain`, minimal; P3.5 adds dialogs and Windows specifics); Android `content:` = SAF
+URI, valid after restart while its persisted grant is held (P3.4); Web `web:` = per-page handle id,
+`survivesRestart = false` (P3.6); `mem:` = `InMemoryFileAccess`, the fake (fault hook per operation, read-only
+files) for tests. `FileAccess`: `info`, `list` (direct children), `readRandom` (positioned `readAt` + bounded
+`readBytes`, for the head and the ZIP central directory; a provider that cannot seek copies to app-private storage
+first) and `readStream`. Calls are `suspend`, main-safe and safe to run concurrently; handles live only inside their
+block. Cancellation is cooperative (`CancellationException`, never a `FileError`); `list` checks between entries,
+reads per chunk. Errors are `FileResult.Failure(FileError)`: `NotFound`, `PermissionLost`, `Locked`, `ReadOnly`,
+`WrongKind`, `AlreadyExists`, `NoSpace`, `IoError` (damaged / unreadable); a handle throws `FileAccessException`,
+which its call turns into a failure. Writing is `RawFileWrites` (`createSibling`, `write` truncate + `flush`
+= fsync, atomic `replace`, `delete`), reached as `FileAccess.rawWrites` behind the `@SafeSaveOnly` opt-in (a
+compile error outside safe save; null on Web). One contract suite (`FileAccessContract`, commonTest, Turkish
+names) runs on the fake (desktop, Android host, Wasm) and on real temp files (desktop). New dependency:
+kotlinx-coroutines 1.9.0 (Apache-2.0), the version Compose already ships, for cancellation and `Dispatchers.IO`.
+
 ### P3.2 Format detection
 
 Efor: high

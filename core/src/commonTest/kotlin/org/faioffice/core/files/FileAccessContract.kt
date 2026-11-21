@@ -91,7 +91,7 @@ abstract class FileAccessContract {
             assertEquals(
                 3L,
                 f.access
-                    .info(restored)
+                    .info(assertNotNull(restored))
                     .getOrThrow()
                     .size,
             )

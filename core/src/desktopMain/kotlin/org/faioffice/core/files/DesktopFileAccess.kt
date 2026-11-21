@@ -261,16 +261,16 @@ internal fun errorOf(
     writing: Boolean,
 ): FileError {
     val message = (e as? FileSystemException)?.reason ?: e.message
-    val lower = message.orEmpty().lowercase()
+    val text = message.orEmpty()
     return when {
         e is NoSuchFileException -> FileError.NotFound
         e is FileAlreadyExistsException -> FileError.AlreadyExists
         e is NotDirectoryException -> FileError.WrongKind(EntryKind.Folder)
         e is AtomicMoveNotSupportedException -> FileError.IoError("atomic replace not supported here")
-        LOCKED_MESSAGES.any { it in lower } -> FileError.Locked
-        NO_SPACE_MESSAGES.any { it in lower } -> FileError.NoSpace
+        LOCKED_MESSAGES.any { text.contains(it, ignoreCase = true) } -> FileError.Locked
+        NO_SPACE_MESSAGES.any { text.contains(it, ignoreCase = true) } -> FileError.NoSpace
         e is AccessDeniedException -> if (writing) FileError.ReadOnly else FileError.PermissionLost
-        lower.contains("read-only file system") -> FileError.ReadOnly
+        text.contains("read-only file system", ignoreCase = true) -> FileError.ReadOnly
         else -> FileError.IoError(message ?: e::class.simpleName.orEmpty())
     }
 }
