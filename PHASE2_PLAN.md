@@ -139,7 +139,7 @@ current.
 
 Done when: `ux.sh` produces the package for every P2.5 screen; a commit that changes a screen refreshes it.
 
-### P2.8 Budget tests
+### P2.8 Budget tests — YAPILDI (dev 3427b01)
 
 Efor: high
 
