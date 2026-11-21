@@ -265,6 +265,35 @@ Done when: unit tests cover ordering, the limit, pinning, schema migration from 
 (app starts with an empty list and keeps the damaged file aside); restart on desktop and process death on Android
 keep the list.
 
+Result: `org.faioffice.core.library` in `core/commonMain`; no UI (P3.8). `LibraryStore(access, safeSave, storeFile,
+damagedFile, clock)` keeps recent entries (`RecentEntry`: ref, name, `FileFormat` + derived family, size, last opened,
+pinned) and user folders (`LibraryFolder`) in one file written only through `SafeSave.save`. Deviation from the task
+text: the store takes the store file's `FileRef` and a `damagedFile` `FileRef` instead of a folder, because a `FileRef`
+is opaque and a child ref cannot be derived without the raw-write primitives; P3.4 / P3.5 / P3.8 bind both (Android
+files dir, Windows `%APPDATA%`, Linux XDG data dir) and, where `SafeSave` cannot create files (content URIs), create
+them empty first. Absent or empty store = empty library. Format: UTF-8 lines, tab-separated, `\`-escaped, first line
+`FAI-LIBRARY <version>`; version 2 (current) has `remember`, `recent` (with `pinned`) and `folder` lines; version 1 =
+`recent` lines without the `pinned` field, no switch, no folders (migrated: remember on, nothing pinned; the next
+write is version 2). Unknown newer version, bad line or invalid UTF-8 = damaged: the bytes are copied to `damagedFile`
+with `saveAsCopy` (never deleted), the library starts empty, the next save writes a fresh store. A read error other
+than not-found (locked, I/O) leaves the store unloaded and unwritten so a good file is not overwritten; mutators return
+false until a later call can read it. Operations run one at a time under a `Mutex`; mutators return whether the change
+reached disk (memory keeps it either way). Recording moves an existing ref to the front (one entry per ref, pin kept);
+100 unpinned entries are kept, the oldest unpinned is dropped, pinned never count. Switch off clears recents (folders
+stay) and `recordOpened` becomes a no-op; the switch is persisted. State is checked only on request (`stateOf`,
+`recentsWithState`) via `FileAccess.info`: success = available; `NotFound`, `WrongKind`, `IoError` = missing;
+`PermissionLost` = permissionLost; `Locked`, `ReadOnly`, `NoSpace`, `AlreadyExists` = available (the file exists).
+`FileAccess.scanFolder(folder, family, limits)` lists breadth first (defaults depth 3, 2000 files), filters by family
+from the extension only (no content detection), honours cancellation between folders and entries, returns results in
+memory; a root that cannot be listed fails, deeper failures and folders past the depth limit count in `skippedFolders`,
+the file limit sets `truncated`. Tests: `LibraryStoreContract` (ordering, re-open, 100 limit with pinned, pin / remove /
+clear, switch, restart, v1 migration, damaged / newer-version store, state available / missing) runs on
+`InMemoryFileAccess` (commonTest: JVM, Android host, Wasm) and on real temp files with `DesktopFileAccess` (desktopTest);
+restart = a new `LibraryStore` on the same files. Android process death is the same re-read of the store file, covered
+by the commonTest run on the Android host (no device run). Fault tests cover permissionLost and an unreadable store;
+scan tests cover depth, family, file limit, failed subfolder and cancellation. Folder locations come from the platform
+layer; nothing here resolves them.
+
 Depends on: P3.1, P3.2, P3.3.
 
 ### P3.8 File screens
