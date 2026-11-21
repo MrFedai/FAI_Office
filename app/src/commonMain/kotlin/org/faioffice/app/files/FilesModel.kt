@@ -107,7 +107,7 @@ class FilesModel(
 
     /** The open file: what [FileHub.resolve] found for it (null while it is read). */
     var opened: OpenRequest? by mutableStateOf(null)
-        private set
+        internal set
 
     /** The last folder that could not be added, with its error; shown in Settings until the next success. */
     var folderError: FileError? by mutableStateOf(null)

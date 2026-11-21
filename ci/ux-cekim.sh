@@ -5,7 +5,7 @@
 source "$(dirname "$0")/lib.sh"
 shots=app/build/bakis
 rm -rf "$shots"
-run_gradle ux-cekim :app:desktopTest --tests '*ShellShotTest*' --tests '*TokenShotTest*' --rerun
+run_gradle ux-cekim :app:desktopTest --tests '*ShellShotTest*' --tests '*FileShotTest*' --tests '*TokenShotTest*' --rerun
 count=$(find "$shots" -name '*.png' | wc -l)
 [ "$count" -gt 0 ] || { echo "!! no shots in $shots"; exit 1; }
 if [ -n "${UX_OUT:-}" ]; then

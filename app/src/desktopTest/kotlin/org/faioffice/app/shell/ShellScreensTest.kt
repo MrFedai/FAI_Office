@@ -22,9 +22,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Every destination opens its empty state: navigates to each of the nine on the desktop (1920 x 950, English) and
- * the phone layout (390 x 844, Turkish) and checks the empty-state title and the primary action on screen. The
- * action must be disabled (no file opening yet: no fake function); Settings has none.
+ * Every destination opens its screen without files: navigates to each of the nine on the desktop (1920 x 950,
+ * English) and the phone layout (390 x 844, Turkish) and checks the title and the primary action on screen. File
+ * opening works since P3.8, so the actions are enabled; only File Converter's stays disabled (Phase 6, no fake
+ * function). Settings shows its sections and has no primary action.
  */
 class ShellScreensTest {
     private val systemLocale: Locale = Locale.getDefault()
@@ -41,26 +42,26 @@ class ShellScreensTest {
         mapOf(
             Destination.Home to Expected("Start with a file", "Open file"),
             Destination.RecentFiles to Expected("No recent files yet", "Open file"),
-            Destination.Documents to Expected("No document open", "Open document"),
-            Destination.Presentations to Expected("No presentation open", "Open presentation"),
-            Destination.Spreadsheets to Expected("No spreadsheet open", "Open spreadsheet"),
-            Destination.Pdf to Expected("No PDF open", "Open PDF"),
+            Destination.Documents to Expected("No documents yet", "Open document"),
+            Destination.Presentations to Expected("No presentations yet", "Open presentation"),
+            Destination.Spreadsheets to Expected("No spreadsheets yet", "Open spreadsheet"),
+            Destination.Pdf to Expected("No PDF files yet", "Open PDF"),
             Destination.FileConverter to Expected("Nothing to convert yet", "Choose file"),
-            Destination.Archive to Expected("No archive open", "Open archive"),
-            Destination.Settings to Expected("Nothing to set here yet", null),
+            Destination.Archive to Expected("No archives yet", "Open archive"),
+            Destination.Settings to Expected("Added folders", null),
         )
 
     private val turkish =
         mapOf(
             Destination.Home to Expected("Bir dosyayla başlayın", "Dosya aç"),
             Destination.RecentFiles to Expected("Henüz son dosya yok", "Dosya aç"),
-            Destination.Documents to Expected("Açık belge yok", "Belge aç"),
-            Destination.Presentations to Expected("Açık sunum yok", "Sunum aç"),
-            Destination.Spreadsheets to Expected("Açık tablo yok", "Tablo aç"),
-            Destination.Pdf to Expected("Açık PDF yok", "PDF aç"),
+            Destination.Documents to Expected("Henüz belge yok", "Belge aç"),
+            Destination.Presentations to Expected("Henüz sunum yok", "Sunum aç"),
+            Destination.Spreadsheets to Expected("Henüz tablo yok", "Tablo aç"),
+            Destination.Pdf to Expected("Henüz PDF yok", "PDF aç"),
             Destination.FileConverter to Expected("Dönüştürülecek dosya yok", "Dosya seç"),
-            Destination.Archive to Expected("Açık arşiv yok", "Arşiv aç"),
-            Destination.Settings to Expected("Henüz ayar yok", null),
+            Destination.Archive to Expected("Henüz arşiv yok", "Arşiv aç"),
+            Destination.Settings to Expected("Eklenen klasörler", null),
         )
 
     /** All semantics nodes (merged tree) of the scene. */
@@ -97,7 +98,7 @@ class ShellScreensTest {
                 val want = expected.getValue(d)
                 assertTrue(
                     nodes.any { want.title in it.texts() },
-                    "$d at ${width}x$height: empty-state title '${want.title}' not on screen",
+                    "$d at ${width}x$height: title '${want.title}' not on screen",
                 )
                 val actions = nodes.filter { it.config.getOrNull(SemanticsProperties.Role) != null }
                 val action = actions.firstOrNull { node -> node.texts().any { it == want.action } }
@@ -105,10 +106,12 @@ class ShellScreensTest {
                     assertNull(action, "$d has no primary action")
                 } else {
                     assertNotNull(action, "$d at ${width}x$height: action '${want.action}' not on screen")
-                    assertTrue(
-                        action.config.contains(SemanticsProperties.Disabled),
-                        "$d: '${want.action}' must be disabled until it works",
-                    )
+                    val disabled = action.config.contains(SemanticsProperties.Disabled)
+                    if (d == Destination.FileConverter) {
+                        assertTrue(disabled, "$d: '${want.action}' must be disabled until it works")
+                    } else {
+                        assertTrue(!disabled, "$d: '${want.action}' must work")
+                    }
                 }
             }
         } finally {

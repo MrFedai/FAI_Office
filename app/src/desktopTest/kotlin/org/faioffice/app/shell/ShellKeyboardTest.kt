@@ -21,8 +21,8 @@ import kotlin.test.assertEquals
 /**
  * Keyboard on the desktop layout (1920 x 950): Tab moves focus through top bar and side navigation, Enter / Space
  * select, Esc and Alt+Left go back, Esc at Home does nothing.
- * Focus order on Home: content pane (focused at start) -> five file-type tiles -> theme -> settings -> side
- * navigation Home -> Recent Files -> Documents ...
+ * Focus order on Home without files: content pane (focused at start) -> "Open file" -> five file-type tiles ->
+ * theme -> settings -> side navigation Home -> Recent Files -> Documents ...
  */
 class ShellKeyboardTest {
     private val systemLocale: Locale = Locale.getDefault()
@@ -50,9 +50,9 @@ class ShellKeyboardTest {
             }
         try {
             scene.render()
-            repeat(9) { scene.press(Key.Tab) }
+            repeat(10) { scene.press(Key.Tab) }
             scene.press(Key.Enter)
-            assertEquals(Destination.RecentFiles, nav.current, "Tab x9 + Enter selects Recent Files")
+            assertEquals(Destination.RecentFiles, nav.current, "Tab x10 + Enter selects Recent Files")
 
             scene.press(Key.Tab)
             scene.press(Key.Spacebar)
