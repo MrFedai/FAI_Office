@@ -16,7 +16,8 @@
 #   Linux + display    desktop first frame and RAM at rest (FAI_BUDGET_PROBE hook in the desktop app); under WSL
 #                      (WSLg) it is reported but not counted: the budget is for a native Linux desktop.
 # Knobs: BUDGET_RUNS (timed runs, default 5), BUDGET_SETTLE_S (seconds at rest before RAM, default 5),
-#        BUDGET_REPORT_DIR (default reports/budget), BUDGET_REF_MODEL_RE (reference model, default SM-A176).
+#        BUDGET_REPORT_DIR (default reports/budget), BUDGET_REF_MODEL_RE (reference model, default SM-A176),
+#        ADB (adb binary, default from PATH).
 source "$(dirname "$0")/lib.sh"
 
 RUNS=${BUDGET_RUNS:-5}
@@ -25,6 +26,7 @@ REPORT_DIR=${BUDGET_REPORT_DIR:-reports/budget}
 REF_MODEL_RE=${BUDGET_REF_MODEL_RE:-SM-A176} # Samsung Galaxy A17 5G (SM-A176B and its regional variants)
 PKG=org.faioffice
 ACTIVITY=$PKG/org.faioffice.android.MainActivity
+ADB=${ADB:-adb}
 M="$LOG_DIR/budget-measurements.tsv"
 : >"$M"
 
@@ -60,10 +62,10 @@ fi
 echo "== [4/5] Android on the reference phone (adb)"
 android_measure() {
     local reason="" serial model where apk bt i out total wait state pss times=() psses=()
-    if ! command -v adb >/dev/null; then
+    if ! command -v "$ADB" >/dev/null; then
         reason="no device (adb not found)"
     else
-        serial=${ANDROID_SERIAL:-$(adb devices | awk 'NR > 1 && $2 == "device" { print $1; exit }')}
+        serial=${ANDROID_SERIAL:-$("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1; exit }')}
         [ -n "$serial" ] || reason="no device"
     fi
     if [ -n "$reason" ]; then
@@ -72,7 +74,7 @@ android_measure() {
         row android_home_pss_mb "" "–" 1 "$reason"
         return 0
     fi
-    a() { adb -s "$serial" "$@" | tr -d '\r'; }
+    a() { "$ADB" -s "$serial" "$@" | tr -d '\r'; }
     model=$(a shell getprop ro.product.model)
     where="$model, Android $(a shell getprop ro.build.version.release)"
     [[ $model =~ $REF_MODEL_RE ]] || where="$where (not the reference device)"
