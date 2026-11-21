@@ -110,12 +110,14 @@ val Destination.emptyState: EmptyStateContent
 
 /**
  * Empty-state card (DESIGN.md section 6): large destination badge in its meaning colour, title, one sentence, then
- * the disabled primary action and the "in development" chip, centred on a bordered surface.
+ * the disabled primary action and the "in development" chip, centred on a bordered surface ([modifier] may give it a
+ * minimum height; the content stays centred).
  */
 @Composable
 fun EmptyState(
     destination: Destination,
     layout: ShellLayout,
+    modifier: Modifier = Modifier,
 ) {
     val content = destination.emptyState
     val colors = FaiTheme.colors
@@ -124,13 +126,13 @@ fun EmptyState(
     val center = TextAlign.Center
     val bodyStyle = if (phone) FaiTheme.type.bodyMobile else FaiTheme.type.body
     Column(
-        Modifier
+        modifier
             .fillMaxWidth()
             .background(colors.surface, shape)
             .border(FaiSize.border, colors.border, shape)
             .padding(horizontal = if (phone) FaiSpace.s16 else FaiSpace.s32, vertical = FaiSpace.s32),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(FaiSpace.s12),
+        verticalArrangement = Arrangement.spacedBy(FaiSpace.s12, Alignment.CenterVertically),
     ) {
         DestinationBadge(destination, large = true)
         BasicText(

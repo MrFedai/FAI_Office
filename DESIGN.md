@@ -140,7 +140,8 @@ top tabs, and a tablet shows documents better with a side rail than with a phone
   touch)` picks the layout, `ShellNavigator` is the back stack (Home is the root; back at Home goes to the system).
   Keyboard: Tab / Shift+Tab move focus, Enter / Space select, Alt+Left or Esc go back; the focus ring (`primary`,
   2 dp) shows only after a key press. Android: predictive back scales and fades the content.
-- **Empty state** (P2.5b, `shell/EmptyState.kt`): every destination opens on one bordered `surface` card, centred:
+- **Empty state** (P2.5b, `shell/EmptyState.kt`): every destination opens on one bordered `surface` card that fills
+  the visible page (no blank page under a strip; Home keeps it at its own height above the tiles), content centred:
   large badge (`emptyBadge` 56, icon `iconLarge` 28, destination meaning colour on its 14 % tint), short title
   (`pageTitle`), one sentence (`body`, `bodyMobile` on phone, `text2`), then the primary action and the violet
   "In development" chip. An action that does not work yet is a `PrimaryButton` without handler: 45 % opacity, no

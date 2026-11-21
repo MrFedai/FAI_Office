@@ -130,7 +130,8 @@ private fun Modifier.shellInput(
 
 /**
  * Current destination. The pane takes focus at start so the back keys work before the first Tab; it draws no ring
- * (it is a region, not a control). Scales and fades with a predictive back gesture.
+ * (it is a region, not a control). Scales and fades with a predictive back gesture. [DestinationScreen] gets the
+ * visible page height so an empty state can fill it.
  */
 @Composable
 private fun ShellContent(
@@ -141,7 +142,8 @@ private fun ShellContent(
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     val phone = layout == ShellLayout.Phone
-    Box(
+    val padY = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadY
+    BoxWithConstraints(
         modifier
             .fillMaxSize()
             .graphicsLayer {
@@ -150,13 +152,16 @@ private fun ShellContent(
                 scaleY = 1f - BACK_SCALE * p
                 alpha = 1f - BACK_FADE * p
             }.focusRequester(focus)
-            .focusable()
-            .verticalScroll(rememberScrollState())
-            .padding(
-                horizontal = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadX,
-                vertical = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadY,
-            ),
+            .focusable(),
     ) {
-        DestinationScreen(navigator.current, layout, navigator::navigate)
+        val pageHeight = maxHeight - padY * 2
+        Box(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadX, vertical = padY),
+        ) {
+            DestinationScreen(navigator.current, layout, pageHeight, navigator::navigate)
+        }
     }
 }

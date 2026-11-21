@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import org.faioffice.app.resources.Res
 import org.faioffice.app.resources.home_open_by_type
 import org.faioffice.app.theme.FaiAlpha
@@ -66,19 +67,22 @@ fun DestinationBadge(
 }
 
 /**
- * Screen of a destination (P2.5b): its empty state while no file is open; Home adds the file-type tiles below, the
+ * Screen of a destination (P2.5b): its empty state while no file is open, filling the visible [pageHeight] so no
+ * blank page remains under it. Home keeps the card at its own height and adds the file-type tiles below, the
  * phone's way to Presentations, Spreadsheets and Archive (order fixed by [Destination.HomeTiles]).
  */
 @Composable
 fun DestinationScreen(
     destination: Destination,
     layout: ShellLayout,
+    pageHeight: Dp,
     onSelect: (Destination) -> Unit,
 ) {
     val gap = if (layout == ShellLayout.Phone) FaiSpace.s16 else FaiSpace.s24
+    val home = destination == Destination.Home
     Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-        EmptyState(destination, layout)
-        if (destination == Destination.Home) HomeTiles(layout, onSelect)
+        EmptyState(destination, layout, Modifier.heightIn(min = if (home) Dp.Unspecified else pageHeight))
+        if (home) HomeTiles(layout, onSelect)
     }
 }
 
