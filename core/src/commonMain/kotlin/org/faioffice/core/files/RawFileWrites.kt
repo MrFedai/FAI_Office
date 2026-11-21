@@ -36,6 +36,16 @@ interface RawFileWrites {
     ): FileResult<FileRef>
 
     /**
+     * Creates a new empty file inside the existing [folder], named from [nameHint] like [createSibling]. Safe save
+     * keeps its journal and the backups of content URIs (which have no folder of their own) in an app-private folder
+     * this way. [FileError.NotFound] when [folder] does not exist, [FileError.WrongKind] when it is a file.
+     */
+    suspend fun createIn(
+        folder: FileRef,
+        nameHint: String,
+    ): FileResult<FileRef>
+
+    /**
      * Truncates the existing file [ref] and lets [block] write it from the start. Data is durable only after
      * [ByteSink.flush]; the sink is closed when the block ends. [FileError.NotFound] when [ref] does not exist.
      */
@@ -46,7 +56,8 @@ interface RawFileWrites {
 
     /**
      * Replaces [target] with [source] (a file from [createSibling] for [target]); [source] no longer exists
-     * afterwards. Atomic when [atomicReplace]; otherwise not supported ([FileError.IoError]).
+     * afterwards. Atomic when [atomicReplace]; otherwise not supported ([FileError.IoError]). [FileError.Locked]
+     * when another program holds [target] open (Windows).
      */
     suspend fun replace(
         source: FileRef,

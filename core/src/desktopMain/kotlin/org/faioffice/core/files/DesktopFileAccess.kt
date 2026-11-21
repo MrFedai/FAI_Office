@@ -108,6 +108,18 @@ class DesktopFileAccess : FileAccess {
                 refOf(Files.createTempFile(folder, "$nameHint.", ".tmp"))
             }
 
+        override suspend fun createIn(
+            folder: FileRef,
+            nameHint: String,
+        ): FileResult<FileRef> =
+            io(folder, writing = true) { path ->
+                if (!Files.isDirectory(path)) {
+                    if (Files.exists(path)) throw FileAccessException(FileError.WrongKind(EntryKind.Folder))
+                    throw NoSuchFileException(path.toString())
+                }
+                refOf(Files.createTempFile(path, "$nameHint.", ".tmp"))
+            }
+
         override suspend fun <T> write(
             ref: FileRef,
             block: suspend (ByteSink) -> T,
@@ -126,7 +138,14 @@ class DesktopFileAccess : FileAccess {
         ): FileResult<Unit> =
             io(target, writing = true) { path ->
                 if (Files.isDirectory(path)) throw FileAccessException(FileError.WrongKind(EntryKind.File))
-                Files.move(pathOf(source), path, StandardCopyOption.ATOMIC_MOVE)
+                try {
+                    Files.move(pathOf(source), path, StandardCopyOption.ATOMIC_MOVE)
+                } catch (e: AccessDeniedException) {
+                    // Windows refuses to replace a file another program holds open with ERROR_ACCESS_DENIED; a
+                    // writable file in a writable folder is then locked, not read-only.
+                    if (isWritableFileInWritableFolder(path)) throw FileAccessException(FileError.Locked, e)
+                    throw e
+                }
                 Unit
             }
 
@@ -201,6 +220,9 @@ class DesktopFileAccess : FileAccess {
                 writable = Files.isWritable(path),
             )
         }
+
+        private fun isWritableFileInWritableFolder(path: Path): Boolean =
+            Files.isRegularFile(path) && Files.isWritable(path) && path.parent?.let(Files::isWritable) == true
 
         private fun probeMime(path: Path): String? =
             try {

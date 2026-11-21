@@ -265,6 +265,33 @@ abstract class FileAccessContract {
         }
 
     @Test
+    fun createInMakesUniqueEmptyFilesInFolder() =
+        contract { f ->
+            val writes = f.access.rawWrites ?: return@contract
+            val folder = f.folder("Uygulama verisi/kayıt")
+            val first = writes.createIn(folder, "fai-save-journal").getOrThrow()
+            val second = writes.createIn(folder, "fai-save-journal").getOrThrow()
+            assertNotEquals(first, second)
+            val names =
+                f.access
+                    .list(folder)
+                    .getOrThrow()
+                    .map { it.name }
+            assertEquals(2, names.size)
+            assertTrue(names.all { it.startsWith("fai-save-journal.") }, "$names")
+            assertEquals(
+                0L,
+                f.access
+                    .info(first)
+                    .getOrThrow()
+                    .size,
+            )
+            assertEquals(FileError.NotFound, writes.createIn(f.missing("yok"), "x").errorOrNull())
+            val file = f.file("dosya.txt", byteArrayOf(1))
+            assertEquals(FileError.WrongKind(EntryKind.Folder), writes.createIn(file, "x").errorOrNull())
+        }
+
+    @Test
     fun writeTruncatesAndReportsErrors() =
         contract { f ->
             val writes = f.access.rawWrites ?: return@contract

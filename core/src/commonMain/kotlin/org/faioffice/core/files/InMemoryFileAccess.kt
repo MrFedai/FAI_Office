@@ -9,7 +9,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /** The operations [InMemoryFileAccess.faults] can fail. */
-enum class FileOp { Info, List, Read, CreateSibling, Write, Flush, Replace, Delete }
+enum class FileOp { Info, List, Read, CreateSibling, CreateIn, Write, Flush, Replace, Delete }
 
 /**
  * In-memory [FileAccess] with the same contract as the platform implementations, for tests and previews.
@@ -170,6 +170,24 @@ class InMemoryFileAccess : FileAccess {
                 var path: String
                 do {
                     path = (if (parent == ROOT) "" else parent) + "/$nameHint.${++siblingCounter}"
+                } while (path in nodes)
+                nodes[path] = FileNode(ByteArray(0), tick(), mimeType = null, readOnly = false)
+                ref(path)
+            }
+
+        override suspend fun createIn(
+            folder: FileRef,
+            nameHint: String,
+        ): FileResult<FileRef> =
+            locked(FileOp.CreateIn, folder) { key ->
+                when (nodes[key]) {
+                    null -> fail(FileError.NotFound)
+                    is FileNode -> fail(FileError.WrongKind(EntryKind.Folder))
+                    is FolderNode -> Unit
+                }
+                var path: String
+                do {
+                    path = (if (key == ROOT) "" else key) + "/$nameHint.${++siblingCounter}"
                 } while (path in nodes)
                 nodes[path] = FileNode(ByteArray(0), tick(), mimeType = null, readOnly = false)
                 ref(path)

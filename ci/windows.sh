@@ -29,7 +29,7 @@ for msi in app/build/compose/binaries/main/msi/*.msi; do
 done
 
 echo "== [2/3] desktop tests on Windows (screenshots: app/build/bakis)"
-run_gradle windows-test :app:desktopTest
+run_gradle windows-test :app:desktopTest :core:desktopTest
 echo "== $(find app/build/bakis -name '*.png' | wc -l) screenshots in app/build/bakis"
 
 echo "== [3/3] installed size"
