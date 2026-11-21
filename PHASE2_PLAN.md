@@ -153,7 +153,7 @@ report is committed; a deliberate regression makes the script fail.
 
 Depends on: P2.5; P2.10; reference phone; the Windows PC.
 
-### P2.10 Windows build
+### P2.10 Windows build — YAPILDI (dev 763d1ca)
 
 Efor: high
 
