@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was
+     not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<!--
+  Windows "Open with" entries of the MSI (P3.5). The packageMsi task (app/build.gradle.kts) adds the Fragment below
+  to jpackage's own main.wxs, referenced from its DefaultFeature, so the entries are installed with the app and
+  removed with it (Windows Installer deletes the registry values of an uninstalled component).
+
+  Only suggestions, never a default-app claim: the ProgID FAIOffice.File and the Applications\fai-office.exe key
+  describe how to open a file; each extension lists the ProgID under OpenWithProgids. The default value of
+  Software\Classes\.<ext> (which would make the app the handler) is never written, and nothing is registered under
+  RegisteredApplications / Default Apps. Per-user install: everything under HKCU, the component's key path too.
+  Windows reads only the value names under OpenWithProgids and SupportedTypes; their data is a non-empty string
+  because WiX 3 and the MSI Registry table treat an empty value specially.
+
+  The extensions are those of every detected format with a registered MIME type (FileFormat, the same set as the
+  Android intent filters); WindowsOpenWithTest checks the list and the rules above.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <ComponentGroup Id="FaiOpenWith">
+      <Component Id="FaiOpenWithRegistry" Directory="INSTALLDIR" Guid="{718317B1-4F75-418B-A237-D641A0283CC4}">
+        <RegistryValue Root="HKCU" Key="Software\FAI Office\OpenWith" Name="Installed" Value="1" Type="integer" KeyPath="yes"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\FAIOffice.File\DefaultIcon" Value="&quot;[INSTALLDIR]fai-office.exe&quot;,0" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\FAIOffice.File\shell\open\command" Value="&quot;[INSTALLDIR]fai-office.exe&quot; &quot;%1&quot;" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe" Name="FriendlyAppName" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\shell\open\command" Value="&quot;[INSTALLDIR]fai-office.exe&quot; &quot;%1&quot;" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.pdf\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.docx\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.docm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.dotx\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.dotm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.odt\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.ott\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.doc\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.dot\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.rtf\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xlsx\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xlsm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xltx\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xltm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.ods\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.ots\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xls\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xlt\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.csv\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.tsv\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.pptx\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.pptm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.potx\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.potm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.ppsx\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.ppsm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.odp\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.otp\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.ppt\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.pot\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.pps\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.zip\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.7z\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.rar\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.tar\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.gz\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.tgz\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.bz2\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.tbz2\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xz\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.txz\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.png\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.jpg\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.jpeg\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.jpe\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.jfif\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.gif\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.webp\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.bmp\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.dib\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.tif\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.tiff\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.svg\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.html\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.htm\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xhtml\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.xml\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.epub\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.txt\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.text\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\.log\OpenWithProgids" Name="FAIOffice.File" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".pdf" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".docx" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".docm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".dotx" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".dotm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".odt" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".ott" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".doc" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".dot" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".rtf" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xlsx" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xlsm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xltx" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xltm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".ods" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".ots" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xls" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xlt" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".csv" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".tsv" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".pptx" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".pptm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".potx" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".potm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".ppsx" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".ppsm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".odp" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".otp" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".ppt" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".pot" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".pps" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".zip" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".7z" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".rar" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".tar" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".gz" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".tgz" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".bz2" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".tbz2" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xz" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".txz" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".png" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".jpg" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".jpeg" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".jpe" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".jfif" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".gif" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".webp" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".bmp" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".dib" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".tif" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".tiff" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".svg" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".html" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".htm" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xhtml" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".xml" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".epub" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".txt" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".text" Value="FAI Office" Type="string"/>
+        <RegistryValue Root="HKCU" Key="Software\Classes\Applications\fai-office.exe\SupportedTypes" Name=".log" Value="FAI Office" Type="string"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

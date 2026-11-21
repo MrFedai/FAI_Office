@@ -1,7 +1,11 @@
 // Compose Multiplatform shell: screens, navigation, design system (commonMain) and the desktop and Web entry
 // points. The Android entry point lives in :androidApp (AGP 9 keeps com.android.application out of KMP modules).
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import java.net.URI
+import java.nio.file.FileSystems
+import java.nio.file.Files
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -95,5 +99,62 @@ compose.desktop {
             }
         }
         buildTypes.release.proguard { isEnabled.set(true) }
+    }
+}
+
+// Windows "Open with" (P3.5): jpackage's own file associations write the default value of HKCU\Software\Classes\.ext,
+// a default-app claim, so they stay unused. Instead the MSI is linked a second time with jpackage's own main.wxs plus
+// the Fragment of msi/open-with.wxs (OpenWithProgids entries only; WindowsOpenWithTest checks it), referenced from
+// DefaultFeature so Windows Installer removes the entries on uninstall. The Compose task always passes its own
+// (empty on Windows) --resource-dir after any extra argument, so the second run reuses Compose's argument file and
+// appends --resource-dir last; jpackage keeps the last value. The template comes from the packaging JDK (jrt image),
+// so it matches that jpackage exactly.
+tasks.withType<AbstractJPackageTask>().matching { it.name == "packageMsi" }.configureEach {
+    val packagingJdk = javaHome
+    val wix = wixToolsetDir
+    val msiDir = destinationDir
+    val argsFile = layout.buildDirectory.file("compose/tmp/packageMsi.args.txt")
+    val openWith = layout.projectDirectory.file("msi/open-with.wxs")
+    val resources = layout.buildDirectory.dir("msi-resources")
+    inputs.file(openWith)
+    doLast {
+        val home = packagingJdk.get()
+        val template =
+            FileSystems
+                .newFileSystem(URI.create("jrt:/"), mapOf("java.home" to home))
+                .use { jrt ->
+                    Files.readString(
+                        jrt.getPath("/modules/jdk.jpackage/jdk/jpackage/internal/resources/main.wxs"),
+                    )
+                }
+        val anchor = "<ComponentGroupRef Id=\"FileAssociations\"/>"
+        check(template.contains(anchor) && template.contains("</Wix>")) {
+            "jpackage main.wxs of $home changed: no $anchor or </Wix>; update the Open with step in app/build.gradle.kts"
+        }
+        val wxs = openWith.asFile.readText()
+        val fragment = wxs.substring(wxs.indexOf("<Fragment>"), wxs.indexOf("</Fragment>") + "</Fragment>".length)
+        val main =
+            template
+                .replace(anchor, "$anchor\n      <ComponentGroupRef Id=\"FaiOpenWith\"/>")
+                .replaceAfterLast("</Wix>", "")
+                .removeSuffix("</Wix>") + fragment + "\n</Wix>\n"
+        val resourceDir = resources.get().asFile.apply { deleteRecursively() }
+        resourceDir.mkdirs()
+        resourceDir.resolve("main.wxs").writeText(main)
+
+        val out = msiDir.get().asFile
+        out.listFiles { f -> f.extension == "msi" }?.forEach { it.delete() }
+        val jpackage = File(home, "bin/jpackage.exe")
+        val process =
+            ProcessBuilder(jpackage.path, "@${argsFile.get().asFile.path}", "--resource-dir", resourceDir.path)
+                .inheritIO()
+                .apply {
+                    val path = environment()["PATH"].orEmpty()
+                    environment()["PATH"] = wix.get().asFile.path + File.pathSeparator + path
+                }.start()
+        check(process.waitFor() == 0) { "jpackage (MSI with Open with entries) failed" }
+        check(out.listFiles { f -> f.extension == "msi" }.orEmpty().isNotEmpty()) { "no MSI in $out" }
+        val entries = Regex("OpenWithProgids\" Name=").findAll(wxs).count()
+        println("== MSI linked again with $entries Open with entries (msi/open-with.wxs)")
     }
 }
