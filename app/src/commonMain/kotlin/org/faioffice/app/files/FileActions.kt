@@ -22,6 +22,9 @@ interface FileActions {
     /** Shows the choose-folder dialog; the folder joins the library with a lasting grant. */
     fun addFolder(): Boolean
 
+    /** Whether [openInOtherApp] is available here (Android, desktop; not the minimal Web). */
+    val canOpenInOtherApp: Boolean get() = true
+
     /** Offers [ref] to another app with read access only (Android: a chooser with a read grant). */
     fun openInOtherApp(
         ref: FileRef,
@@ -33,11 +36,19 @@ interface FileActions {
 
     /** Opens the system file manager at [ref]'s folder with [ref] selected (desktop, P3.5). */
     fun showInFolder(ref: FileRef): Boolean = false
+
+    /** Titles of the open and choose-folder dialogs in the interface language, where the app draws them (desktop). */
+    fun setDialogTitles(
+        openFiles: String,
+        addFolder: String,
+    ) {}
 }
 
 /** No dialogs (tests, a platform before its P3.5 / P3.6 implementation). */
 object NoFileActions : FileActions {
     override val canAddFolder: Boolean = false
+
+    override val canOpenInOtherApp: Boolean = false
 
     override fun openFiles(): Boolean = false
 

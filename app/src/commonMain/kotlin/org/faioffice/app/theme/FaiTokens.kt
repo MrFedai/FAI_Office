@@ -218,6 +218,11 @@ object FaiSize {
     val iconLarge = 28.dp
     val dialogMax = 720.dp
     val border = 1.dp
+    val fileColumn = 112.dp
+    val detailLabel = 136.dp
+    val switchWidth = 40.dp
+    val switchHeight = 24.dp
+    val switchThumb = 18.dp
 }
 
 /** Lower bounds of the window width classes (DESIGN.md, layout). */

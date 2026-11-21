@@ -23,6 +23,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,9 +41,16 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import org.faioffice.app.files.FilesModel
+import org.faioffice.app.resources.Res
+import org.faioffice.app.resources.dialog_add_folder
+import org.faioffice.app.resources.dialog_open_files
+import org.faioffice.app.screens.FileInfoScreen
+import org.faioffice.app.screens.ScreenScope
 import org.faioffice.app.theme.FaiSpace
 import org.faioffice.app.theme.FaiTheme
 import org.faioffice.app.theme.ThemeMode
+import org.jetbrains.compose.resources.stringResource
 
 /** Content scale and fade at the end of a predictive back gesture (transform + opacity only, TEMEL 6). */
 private const val BACK_SCALE = 0.06f
@@ -68,8 +76,12 @@ fun Shell(
     navigator: ShellNavigator,
     theme: ShellTheme,
     touch: Boolean,
+    files: FilesModel,
 ) {
     val keyboardMode = remember { mutableStateOf(false) }
+    val openTitle = stringResource(Res.string.dialog_open_files)
+    val folderTitle = stringResource(Res.string.dialog_add_folder)
+    LaunchedEffect(files, openTitle, folderTitle) { files.actions.setDialogTitles(openTitle, folderTitle) }
     var navCollapsed by remember { mutableStateOf(false) }
     BoxWithConstraints(
         Modifier
@@ -83,15 +95,16 @@ fun Shell(
         CompositionLocalProvider(LocalFocusRingVisible provides keyboardMode.value) {
             Column(Modifier.fillMaxSize()) {
                 TopBar(
-                    TopBarState(layout, navigator.current, theme.mode, navCollapsed),
+                    TopBarState(layout, navigator.current, theme.mode, navCollapsed, navigator.openedFile != null),
                     TopBarActions(
                         onThemeChange = theme.onChange,
                         onSettings = { navigator.navigate(Destination.Settings) },
                         onToggleNav = { navCollapsed = !navCollapsed },
+                        onBack = { navigator.back() },
                     ),
                 )
                 if (layout == ShellLayout.Phone) {
-                    ShellContent(navigator, layout, Modifier.weight(1f))
+                    ShellContent(navigator, layout, files, Modifier.weight(1f))
                     BottomBar(navigator.current, select)
                 } else {
                     Row(
@@ -103,7 +116,7 @@ fun Shell(
                             layout == ShellLayout.Medium || (layout == ShellLayout.CompactDesktop && navCollapsed)
                         if (rail) NavRail(navigator.current, select) else SideNav(navigator.current, select)
                         VerticalHairline()
-                        ShellContent(navigator, layout, Modifier.weight(1f))
+                        ShellContent(navigator, layout, files, Modifier.weight(1f))
                     }
                 }
             }
@@ -129,14 +142,16 @@ private fun Modifier.shellInput(
     }
 
 /**
- * Current destination. The pane takes focus at start so the back keys work before the first Tab; it draws no ring
- * (it is a region, not a control). Scales and fades with a predictive back gesture. [DestinationScreen] gets the
- * visible page height so an empty state can fill it.
+ * Current destination, or the information page of the open file over it. The pane takes focus at start so the back
+ * keys work before the first Tab; it draws no ring (it is a region, not a control). Scales and fades with a predictive
+ * back gesture. [DestinationScreen] gets the visible page height so an empty state can fill it; each page starts at
+ * its top.
  */
 @Composable
 private fun ShellContent(
     navigator: ShellNavigator,
     layout: ShellLayout,
+    files: FilesModel,
     modifier: Modifier,
 ) {
     val focus = remember { FocusRequester() }
@@ -155,13 +170,20 @@ private fun ShellContent(
             .focusable(),
     ) {
         val pageHeight = maxHeight - padY * 2
-        Box(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadX, vertical = padY),
-        ) {
-            DestinationScreen(navigator.current, layout, pageHeight, navigator::navigate)
+        val opened = navigator.openedFile
+        key(navigator.current, opened) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadX, vertical = padY),
+            ) {
+                if (opened != null) {
+                    FileInfoScreen(ScreenScope(files, navigator, layout, pageHeight), opened)
+                } else {
+                    DestinationScreen(navigator.current, layout, pageHeight, files, navigator)
+                }
+            }
         }
     }
 }

@@ -33,6 +33,8 @@ class WebFiles(
 
     override val canAddFolder: Boolean = false
 
+    override val canOpenInOtherApp: Boolean = false
+
     override fun openFiles(): Boolean =
         try {
             pickFiles { files -> onPicked(files) }

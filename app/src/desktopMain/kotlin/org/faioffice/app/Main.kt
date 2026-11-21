@@ -19,6 +19,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import org.faioffice.app.files.DesktopDrop
 import org.faioffice.app.files.DesktopFiles
+import org.faioffice.app.files.rememberFilesModel
 import org.faioffice.core.AppInfo
 
 fun main(args: Array<String>) {
@@ -34,7 +35,7 @@ fun main(args: Array<String>) {
                 files.attach(window)
                 onDispose { files.detach(window) }
             }
-            Box(Modifier.fillMaxSize().fileDrop(files)) { App() }
+            Box(Modifier.fillMaxSize().fileDrop(files)) { App(files = rememberFilesModel(files.services)) }
             CdsArchiveAfterFirstFrame()
             BudgetProbe()
         }

@@ -5,6 +5,7 @@ package org.faioffice.app.shell
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -24,8 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import org.faioffice.app.resources.Res
+import org.faioffice.app.resources.action_back
 import org.faioffice.app.resources.app_name
 import org.faioffice.app.resources.destination_settings
+import org.faioffice.app.resources.info_title
 import org.faioffice.app.resources.nav_collapse
 import org.faioffice.app.resources.nav_expand
 import org.faioffice.app.resources.theme_dark
@@ -52,6 +55,8 @@ class TopBarState(
     val current: Destination,
     val themeMode: ThemeMode,
     val navCollapsed: Boolean,
+    /** A file information page is open: back button and its title instead of the destination's. */
+    val fileOpen: Boolean = false,
 )
 
 /** Actions of the top bar. */
@@ -59,6 +64,7 @@ class TopBarActions(
     val onThemeChange: (ThemeMode) -> Unit,
     val onSettings: () -> Unit,
     val onToggleNav: () -> Unit,
+    val onBack: () -> Unit = {},
 )
 
 /**
@@ -83,15 +89,34 @@ fun TopBar(
             horizontalArrangement = Arrangement.spacedBy(FaiSpace.s4),
         ) {
             NavHeader(state, actions)
+            if (state.fileOpen) {
+                Box(Modifier.padding(start = if (phone) FaiSpace.s4 else FaiSpace.s8)) {
+                    IconButton(
+                        FaiIcons.arrowLeft,
+                        stringResource(Res.string.action_back),
+                        target,
+                        onClick = actions.onBack,
+                    )
+                }
+            }
             BasicText(
-                stringResource(state.current.title),
+                stringResource(if (state.fileOpen) Res.string.info_title else state.current.title),
                 style = FaiTheme.type.pageTitle.copy(color = FaiTheme.colors.text),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier =
                     Modifier
                         .weight(1f)
-                        .padding(start = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadX),
+                        .padding(
+                            start =
+                                if (state.fileOpen) {
+                                    FaiSpace.s4
+                                } else if (phone) {
+                                    FaiSpace.mobilePad
+                                } else {
+                                    FaiSpace.pagePadX
+                                },
+                        ),
             )
             ThemeButton(state.themeMode, target) { actions.onThemeChange(state.themeMode.next()) }
             IconButton(

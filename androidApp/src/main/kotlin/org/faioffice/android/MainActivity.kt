@@ -13,6 +13,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import org.faioffice.app.App
 import org.faioffice.app.files.AndroidFiles
+import org.faioffice.app.files.rememberFilesModel
 import org.faioffice.app.shell.rememberShellNavigator
 
 class MainActivity :
@@ -53,7 +54,7 @@ class MainActivity :
                     navigator.backProgress = 0f
                 }
             }
-            App(navigator = navigator, touch = true)
+            App(navigator = navigator, touch = true, files = rememberFilesModel(files.services))
         }
     }
 

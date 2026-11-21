@@ -181,6 +181,73 @@ object FaiIcons {
             "m14 9 3 3-3 3",
         )
     }
+
+    private const val FOLDER =
+        "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13" +
+            "a2 2 0 0 0 2 2Z"
+
+    val folder: ImageVector by lazy { lucide("folder", FOLDER) }
+
+    val folderPlus: ImageVector by lazy { lucide("folder-plus", "M12 10v6", "M9 13h6", FOLDER) }
+
+    val arrowLeft: ImageVector by lazy { lucide("arrow-left", "m12 19-7-7 7-7", "M19 12H5") }
+
+    val arrowUp: ImageVector by lazy { lucide("arrow-up", "m5 12 7-7 7 7", "M12 19V5") }
+
+    val arrowDown: ImageVector by lazy { lucide("arrow-down", "M12 5v14", "m19 12-7 7-7-7") }
+
+    val chevronRight: ImageVector by lazy { lucide("chevron-right", "m9 18 6-6-6-6") }
+
+    val x: ImageVector by lazy { lucide("x", "M18 6 6 18", "m6 6 12 12") }
+
+    val pin: ImageVector by lazy {
+        lucide(
+            "pin",
+            "M12 17v5",
+            "M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76" +
+                "a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4" +
+                "a1 1 0 0 1 1 1z",
+        )
+    }
+
+    val externalLink: ImageVector by lazy {
+        lucide(
+            "external-link",
+            "M15 3h6v6",
+            "M10 14 21 3",
+            "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6",
+        )
+    }
+
+    val trash: ImageVector by lazy {
+        lucide(
+            "trash-2",
+            "M3 6h18",
+            "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6",
+            "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2",
+        )
+    }
+
+    val lock: ImageVector by lazy {
+        lucide(
+            "lock",
+            "M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z",
+            "M7 11V7a5 5 0 0 1 10 0v4",
+        )
+    }
+
+    val circleAlert: ImageVector by lazy { lucide("circle-alert", circle(12f, 12f, 10f), "M12 8v4", "M12 16h.01") }
+
+    val triangleAlert: ImageVector by lazy {
+        lucide(
+            "triangle-alert",
+            "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3",
+            "M12 9v4",
+            "M12 17h.01",
+        )
+    }
+
+    val circleCheck: ImageVector by lazy { lucide("circle-check", circle(12f, 12f, 10f), "m9 12 2 2 4-4") }
 }
 
 /** Navigation icon of each destination. */

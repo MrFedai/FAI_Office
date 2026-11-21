@@ -24,6 +24,7 @@ import org.faioffice.app.resources.action_open_file
 import org.faioffice.app.resources.action_open_pdf
 import org.faioffice.app.resources.action_open_presentation
 import org.faioffice.app.resources.action_open_spreadsheet
+import org.faioffice.app.resources.destination_settings
 import org.faioffice.app.resources.empty_body_archive
 import org.faioffice.app.resources.empty_body_documents
 import org.faioffice.app.resources.empty_body_file_converter
@@ -40,7 +41,6 @@ import org.faioffice.app.resources.empty_title_home
 import org.faioffice.app.resources.empty_title_pdf
 import org.faioffice.app.resources.empty_title_presentations
 import org.faioffice.app.resources.empty_title_recent_files
-import org.faioffice.app.resources.empty_title_settings
 import org.faioffice.app.resources.empty_title_spreadsheets
 import org.faioffice.app.resources.status_in_development
 import org.faioffice.app.theme.FaiRadius
@@ -50,10 +50,7 @@ import org.faioffice.app.theme.FaiTheme
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * Empty state of a destination: short [title], one-sentence [body] and, where it fits, the primary [action]. No
- * action works yet (no file opening before P3), so the action is shown disabled next to the "in development" chip.
- */
+/** Empty state of a destination: short [title], one-sentence [body] and, where it fits, the primary [action]. */
 class EmptyStateContent(
     val title: StringResource,
     val body: StringResource,
@@ -129,8 +126,9 @@ val Destination.emptyState: EmptyStateContent
             }
 
             Destination.Settings -> {
+                // Settings shows its controls instead (P3.8); kept so every destination has an empty state.
                 EmptyStateContent(
-                    Res.string.empty_title_settings,
+                    Res.string.destination_settings,
                     Res.string.empty_body_settings,
                     null,
                 )
@@ -139,14 +137,17 @@ val Destination.emptyState: EmptyStateContent
 
 /**
  * Empty-state card (DESIGN.md section 6): large destination badge in its meaning colour, title, one sentence, then
- * the disabled primary action and the "in development" chip, centred on a bordered surface ([modifier] may give it a
- * minimum height; the content stays centred).
+ * the primary action, centred on a bordered surface ([modifier] may give it a minimum height; the content stays
+ * centred). With [onAction] the action works and [secondary] (for example "Add folder") may follow it; without it the
+ * action is drawn disabled next to the "in development" chip (File Converter until Phase 6).
  */
 @Composable
 fun EmptyState(
     destination: Destination,
     layout: ShellLayout,
     modifier: Modifier = Modifier,
+    onAction: (() -> Unit)? = null,
+    secondary: (@Composable () -> Unit)? = null,
 ) {
     val content = destination.emptyState
     val colors = FaiTheme.colors
@@ -184,10 +185,11 @@ fun EmptyState(
                     label = stringResource(action),
                     icon = FaiIcons.folderOpen,
                     height = if (touch) FaiSize.touchMin else FaiSize.control,
-                    onClick = null,
+                    onClick = onAction,
                 )
             }
-            StatusChip()
+            secondary?.invoke()
+            if (onAction == null) StatusChip()
         }
     }
 }

@@ -84,7 +84,12 @@
     "emptyBadge": 56,
     "iconLarge": 28,
     "dialogMax": 720,
-    "border": 1
+    "border": 1,
+    "fileColumn": 112,
+    "detailLabel": 136,
+    "switchWidth": 40,
+    "switchHeight": 24,
+    "switchThumb": 18
   },
   "breakpoints": {
     "medium": 600,

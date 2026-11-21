@@ -22,8 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
+import org.faioffice.app.files.FilesModel
 import org.faioffice.app.resources.Res
 import org.faioffice.app.resources.home_open_by_type
+import org.faioffice.app.screens.FamilyScreen
+import org.faioffice.app.screens.HomeScreen
+import org.faioffice.app.screens.RecentFilesScreen
+import org.faioffice.app.screens.ScreenScope
+import org.faioffice.app.screens.SettingsScreen
+import org.faioffice.app.screens.family
 import org.faioffice.app.theme.FaiAlpha
 import org.faioffice.app.theme.FaiRadius
 import org.faioffice.app.theme.FaiSize
@@ -67,28 +74,31 @@ fun DestinationBadge(
 }
 
 /**
- * Screen of a destination (P2.5b): its empty state while no file is open, filling the visible [pageHeight] so no
- * blank page remains under it. Home keeps the card at its own height and adds the file-type tiles below, the
- * phone's way to Presentations, Spreadsheets and Archive (order fixed by [Destination.HomeTiles]).
+ * Screen of a destination: Home, Recent Files, the five family screens and Settings show the file screens of P3.8;
+ * File Converter keeps its empty state (Phase 6), filling the visible [pageHeight] so no blank page remains under it.
  */
 @Composable
 fun DestinationScreen(
     destination: Destination,
     layout: ShellLayout,
     pageHeight: Dp,
-    onSelect: (Destination) -> Unit,
+    files: FilesModel,
+    navigator: ShellNavigator,
 ) {
-    val gap = if (layout == ShellLayout.Phone) FaiSpace.s16 else FaiSpace.s24
-    val home = destination == Destination.Home
-    Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-        EmptyState(destination, layout, Modifier.heightIn(min = if (home) Dp.Unspecified else pageHeight))
-        if (home) HomeTiles(layout, onSelect)
+    val scope = ScreenScope(files, navigator, layout, pageHeight)
+    val family = destination.family
+    when {
+        destination == Destination.Home -> HomeScreen(scope)
+        destination == Destination.RecentFiles -> RecentFilesScreen(scope)
+        family != null -> FamilyScreen(scope, destination, family)
+        destination == Destination.Settings -> SettingsScreen(scope)
+        else -> EmptyState(destination, layout, Modifier.heightIn(min = pageHeight))
     }
 }
 
 /** File-type tiles: list rows on phone and medium, one row of equal tiles on desktop. */
 @Composable
-private fun HomeTiles(
+fun HomeTiles(
     layout: ShellLayout,
     onSelect: (Destination) -> Unit,
 ) {

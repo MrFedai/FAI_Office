@@ -179,11 +179,26 @@ class DesktopFiles private constructor(
 
     override val canShowInFolder: Boolean = true
 
+    // Set by the screens in the interface language; the JDK dialogs have no title of their own on Windows.
+    @Volatile
+    private var openTitle: String? = null
+
+    @Volatile
+    private var folderTitle: String? = null
+
+    override fun setDialogTitles(
+        openFiles: String,
+        addFolder: String,
+    ) {
+        openTitle = openFiles
+        folderTitle = addFolder
+    }
+
     override fun openFiles(): Boolean {
         val owner = window ?: return false
         EventQueue.invokeLater {
             // The system open dialog through AWT (the Windows common file dialog); every file, detection decides.
-            val dialog = FileDialog(owner).apply { isMultipleMode = true }
+            val dialog = FileDialog(owner, openTitle.orEmpty()).apply { isMultipleMode = true }
             dialog.isVisible = true
             val picked = dialog.files.orEmpty().map(File::toPath)
             dialog.dispose()
@@ -231,7 +246,7 @@ class DesktopFiles private constructor(
         if (os == DesktopOs.MacOs) {
             System.setProperty("apple.awt.fileDialogForDirectories", "true")
             try {
-                val dialog = FileDialog(owner).apply { isVisible = true }
+                val dialog = FileDialog(owner, folderTitle.orEmpty()).apply { isVisible = true }
                 val chosen =
                     dialog.files
                         .orEmpty()
@@ -250,6 +265,7 @@ class DesktopFiles private constructor(
             JFileChooser().apply {
                 fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
                 isAcceptAllFileFilterUsed = false
+                folderTitle?.let { dialogTitle = it }
             }
         val approved = chooser.showOpenDialog(owner) == JFileChooser.APPROVE_OPTION
         return if (approved) chooser.selectedFile?.toPath() else null
