@@ -1,7 +1,7 @@
 # FAI_Office
 
 Ücretsiz, açık kaynak (MPL-2.0), çevrimdışı öncelikli ofis paketi: belge, tablo, sunum, PDF, görüntüleme, dönüştürme,
-arşiv; hepsi tek uygulamada. Platform sırası: Android, Linux, Web, Windows, iOS, macOS.
+arşiv; hepsi tek uygulamada. Platform sırası (sahip, 21.11.2026): Android + Windows, Web, Linux, belki macOS / iOS.
 Ortak kurallar (yanıt tarzı, çalışma, kesin kurallar, model / işçi, graphify): `~/.claude/CLAUDE.md` (`~/PROJECTS/claude-ortak`).
 Burada yalnız bu projenin farkı. Kabuk: Compose Multiplatform (Faz 2, `PHASE2_PLAN.md`); `DESIGN.md` P2.4'te yazılır.
 

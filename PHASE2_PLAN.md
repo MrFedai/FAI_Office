@@ -10,12 +10,14 @@ in its heading.
 
 ## Exit criteria
 
-* Android, Linux and Web builds of the shell come from one code base and pass CI.
+* Android, Windows, Linux and Web builds of the shell come from one code base and pass CI (platform order changed
+  by the owner on 2026-11-21: Android and Windows first, then Web, then Linux, macOS / iOS maybe later).
 * Every screen of section 10's navigation exists (empty states), in English and Turkish, light and dark.
 * `DESIGN.md` is written and approved by the owner.
 * Phase 2 budgets hold, measured, not estimated: Android base download, cold start and Home RAM on the Galaxy
-  A55 5G (reference device, owner decision 2026-11-21); Linux cold start and package size on a native Linux machine; Web initial load (section 7).
-* R1 (shell memory on the reference phone) is closed as go, R7 (JVM start, native Linux) and R8 (Web build in
+  A55 5G (reference device, owner decision 2026-11-21); desktop cold start, package size and RAM at rest on
+  the owner's native Windows PC; Web initial load (section 7). Native Linux is measured later, when the owner says.
+* R1 (shell memory on the reference phone) is closed as go, R7 (JVM start, native Windows) and R8 (Web build in
   CI) as go.
 
 ## Order and gates
@@ -26,8 +28,8 @@ run. **Gate before P2.5:** the reference phone has arrived and R1 passes with th
 screen is built.
 
 Owner actions: provide the reference phone, the Galaxy A55 5G (replaces the A17 5G, owner decision 2026-11-21;
-needed for the P2.5 gate and P2.8); name a native Linux machine
-for P2.8 (WSLg numbers do not count).
+needed for the P2.5 gate and P2.8); the Windows PC for P2.10 and P2.8 (WSLg numbers do not count). A native
+Linux machine comes later, when the owner says.
 
 ---
 
@@ -143,13 +145,28 @@ Efor: high
 
 Scripts that measure and compare with section 7, writing one report per run: APK size; cold start to first frame
 (`am start -W`) and Home PSS (`dumpsys meminfo`) on the Galaxy A55 5G over adb; desktop first frame, installed
-size and RAM at rest on the native Linux machine; Web initial load (gzip). The desktop RAM budget gets its number
+size and RAM at rest on the native Windows PC (Linux later); Web initial load (gzip). The desktop RAM budget gets its number
 from this measurement (owner approves).
 
 Done when: every Phase 2 budget in the exit criteria is measured on the named device and inside its budget; the
 report is committed; a deliberate regression makes the script fail.
 
-Depends on: P2.5; reference phone; native Linux machine.
+Depends on: P2.5; P2.10; reference phone; the Windows PC.
+
+### P2.10 Windows build
+
+Efor: high
+
+Owner decision 2026-11-21: Windows is first priority together with Android. Compose Desktop app image and
+installer for Windows (x64) from the same code base; built in CI on a Windows runner (GitHub Actions) with the
+size gate; the desktop measurement hook works on Windows (first frame, RAM at rest without `/proc`); a way to run
+the built app on the owner's Windows PC from the repo (artifact download, or a script runnable from WSL).
+Windows-specific look checked: fonts, scaling (125 % / 150 %), window chrome, keyboard.
+
+Done when: the Windows build passes CI; the app opens on the owner's Windows PC with every P2.5 screen;
+`ci/budget.sh` (or its Windows step) reports desktop first frame, installed size and RAM at rest measured there.
+
+Depends on: P2.5; P2.8 scripts.
 
 ### P2.9 Phase 2 close
 

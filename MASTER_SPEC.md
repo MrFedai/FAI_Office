@@ -51,19 +51,20 @@ measurable meaning of "lightweight" is section 7.
 
 ## 2. PLATFORM PRIORITY
 
-1. Android
-2. Linux
-3. Web
-4. Windows
-5. iOS
-6. macOS
+1. Android and Windows (together)
+2. Web
+3. Linux
+4. macOS and iOS (maybe, later)
+
+Order changed by the owner on 2026-11-21 (was Android, Linux, Web, Windows, iOS, macOS). Phase 1 proved the
+engine paths for Android, Linux and Web; the engine paths on Windows are an open check before Phase 6.
 
 The architecture must support all six platforms without separate product implementations. Platform-specific
 adaptations are acceptable when technically necessary.
 
 Priority is enforced from the start, not at the end:
 
-* Android and Linux are built and tested in CI from Phase 2 onward, in every phase.
+* Android and Windows are built and tested in CI from Phase 2 onward, in every phase; Linux and Web builds stay in CI.
 * The Web build of the light core must keep compiling from Phase 2 onward, even though the Web release is later.
 * No engine may be adopted unless Phase 1 shows a working path to Android, Linux, and Web.
 
@@ -232,7 +233,7 @@ The numbers below were measured in Phase 1 and approved at the Phase 1 review (2
 |-------------------------------------------------------------|---------------------------|
 | Android base download (light core, one ABI)                 | ≤ 30 MB                   |
 | Office engine module download (one ABI)                     | ≤ 120 MB                  |
-| Cold start to usable Home screen (Android and Linux)        | ≤ 1.5 s                   |
+| Cold start to usable Home screen (Android and desktop)      | ≤ 1.5 s                   |
 | Open a 100-page PDF, first page visible                     | ≤ 1 s                     |
 | Open a typical 20-page DOCX, engine not yet loaded          | ≤ 5 s (3 s proposed after the reference phone and Microsoft-produced corpus files are measured) |
 | Open a typical 20-page DOCX, engine already loaded          | ≤ 2 s                     |
@@ -244,14 +245,15 @@ The numbers below were measured in Phase 1 and approved at the Phase 1 review (2
 | Web initial load, light core, compressed                    | ≤ 5 MB (PDFium loaded on first PDF open, not counted) |
 | Web office engine download, compressed                      | ≤ 60 MB, on demand, size shown before download |
 | Web: typical 20-page DOCX laid out, engine cached, mid-range laptop | ≤ 10 s, browser < 1.5 GB |
-| Linux package, light core, installed                        | ≤ 150 MB (confirmed by a native-Linux measurement) |
-| Desktop RAM at rest                                         | set after a native-Linux measurement (Phase 2) |
+| Desktop package (Windows, Linux), light core, installed     | ≤ 150 MB (confirmed by a native Windows measurement; Linux when a native machine is named) |
+| Desktop RAM at rest                                         | set after a native Windows measurement (Phase 2) |
 
 Definitions:
 
 * RAM on Android is PSS from `dumpsys meminfo`, graphics memory included; shell and engine processes are summed
   while both run.
-* Times are measured on the reference device (Android), a native mid-range Linux laptop (Linux) and a mid-range
+* Times are measured on the reference device (Android), a native mid-range Windows laptop (Windows; Linux on a
+  native mid-range Linux laptop when named) and a mid-range
   laptop in Chromium (Web), from user action to the first complete frame.
 * Janky frames: `dumpsys SurfaceFlinger --timestats`, share of the app layer's frames that missed their deadline
   while scrolling a 100-page PDF.
@@ -370,19 +372,19 @@ remaining part of the same application.
 
 | Release | Content                                                                                     | Platforms            |
 |---------|---------------------------------------------------------------------------------------------|----------------------|
-| R1      | "Open everything": shell, file management, PDF tools, viewer, archive, office formats at Level 1 (view), conversion | Android, Linux |
-| R2      | Writer editing (Level 2)                                                                    | Android, Linux       |
-| R3      | Sheets editing (Level 2)                                                                    | Android, Linux       |
-| R4      | Slides editing (Level 2) and presentation mode                                              | Android, Linux       |
+| R1      | "Open everything": shell, file management, PDF tools, viewer, archive, office formats at Level 1 (view), conversion | Android, Windows |
+| R2      | Writer editing (Level 2)                                                                    | Android, Windows     |
+| R3      | Sheets editing (Level 2)                                                                    | Android, Windows     |
+| R4      | Slides editing (Level 2) and presentation mode                                              | Android, Windows     |
 | R5      | Web version                                                                                 | + Web                |
-| R6      | Desktop and Apple platforms                                                                 | + Windows, iOS, macOS|
+| R6      | Linux and Apple platforms                                                                   | + Linux, macOS, iOS  |
 
 R1 is the minimum viable product. Nothing from R2 onward may delay it.
 
 ### Phases
 
 * Phase 1: Architecture, proofs of concept, license audit, budget confirmation.
-* Phase 2: Application shell, navigation, design system. CI for Android and Linux, plus Web build of the core.
+* Phase 2: Application shell, navigation, design system. CI for Android and Windows, plus Linux and Web builds.
 * Phase 3: File management, format detection, recent files, safe-save layer.
 * Phase 4: PDF module.
 * Phase 5: Viewer and Archive modules.
@@ -391,9 +393,9 @@ R1 is the minimum viable product. Nothing from R2 onward may delay it.
 * Phase 8: Sheets editing. → R3
 * Phase 9: Slides editing and presentation mode. → R4
 * Phase 10: Web version. → R5
-* Phase 11: Windows, iOS, and macOS adaptation. → R6
+* Phase 11: Linux packaging and adaptation; macOS and iOS (maybe). → R6
 
-Every phase closes only when its tests pass and the section 7 budgets hold on Android and Linux.
+Every phase closes only when its tests pass and the section 7 budgets hold on Android and Windows.
 
 ## 14. IMPORTANT DEVELOPMENT RULES
 
