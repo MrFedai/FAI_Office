@@ -275,6 +275,14 @@ Web yet" through the typed errors. No File System Access API, no IndexedDB in th
 Done when: the Wasm build passes CI with the initial load still ≤ 5 MB; in Chromium a picked file reaches the file
 information page (browser test or a scripted check in `ci/web.sh`).
 
+Result: `WebFileAccess` + `WebFileSource` + `SessionRecents` in `core/wasmJsMain` (pure logic, no JS types; tests in
+`core/wasmJsTest`, run in Node): picked files get a `FileRef.Kind.WebSession` reference and are read lazily by
+position; listing and writing fail with `FileError.IoError("not available on Web yet")`, `rawWrites` is null. Recent
+files are memory only (newest first, 100). `WebFiles` in `app/wasmJsMain` is the `FileActions` (hidden
+`<input type="file" multiple>`, no `accept` filter; `addFolder` / `openInOtherApp` return false) and puts picked files
+on `FileHub` as `OpenOrigin.Picker`; `Main.kt` creates it. No screen (P3.8); the "reaches the information page" check
+in Chromium belongs to P3.8, here the hub path is covered by the Node tests of the access layer only.
+
 Depends on: P3.1, P3.2.
 
 ### P3.7 Recent files and folder library — YAPILDI (dev f6e6744)
