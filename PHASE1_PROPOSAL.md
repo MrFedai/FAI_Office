@@ -292,14 +292,14 @@ always-available offline build. Not measured; to be validated in Phase 2 CI.
 
 | # | Risk | Go / no-go criterion | Status |
 |---|---|---|---|
-| R1 | Shell memory on the 4 GB reference phone | Go if Home PSS ≤ 150 MB and PDF viewing ≤ 300 MB on that phone | open: phone not yet available |
+| R1 | Shell memory on the reference phone (Galaxy A55 5G since 2026-11-21, was the 4 GB A17) | Go if Home PSS ≤ 150 MB and PDF viewing ≤ 300 MB on that phone | **closed as go for the shell (Phase 2):** Home PSS 51.9 MB, cold start 273 ms on the A55 (`reports/budget/2026-11-21_2211_a4e97e1.md`); PDF ≤ 300 MB moved to the PDF viewer phase as a budget test (owner decision 2026-11-21; PoC peak 355 MB holds pages twice) |
 | R2 | Office engine size grows with fonts / filters | Go if the engine module stays ≤ 120 MB download per ABI | 81–83 MB measured |
 | R3 | Office engine in the browser is too large or slow | Go for full office scope on Web if the trimmed engine is ≤ 60 MB gzip, opens the typical DOCX in ≤ 10 s on a mid laptop and stays < 1.5 GB; otherwise reduced scope | **met on the development PC (trimmed, engine cached):** 56.7 MB gzip, typical DOCX laid out 2.8 s after page start (3.6 s on two cores), Chromium PSS ~0.9 GB; first visit adds the download (~9 s at 50 Mbit/s); real mid laptop not measured |
 | R4 | Play on-demand delivery of a ~200 MB native library | Go if a `bundletool` local test installs the engine module on demand and it starts | not tested |
 | R5 | Fidelity on Microsoft-produced documents | Go for R1 if ≥ 95 % of the corpus passes Level 1 thresholds | corpus not built |
 | R6 | Engine process IPC latency for editing | Go for R2 if a tile round trip after a key press is ≤ 50 ms on the reference phone | not measured |
-| R7 | JVM start on Linux | Go if Compose desktop first frame ≤ 1.5 s on a native mid-range Linux laptop | 1.13 s under WSLg |
-| R8 | Kotlin/Wasm and Compose for Web maturity | Go if the Web build compiles and runs the light core in CI from Phase 2 | builds and renders (shell PoC) |
+| R7 | JVM start on the desktop (native Windows first, Linux later) | Go if Compose desktop first frame ≤ 1.5 s on the owner's native Windows PC (Linux: a native mid-range laptop, when named) | **closed as go for Windows (Phase 2):** 1600 ms without, 937 ms with the AppCDS archive the app writes on its first start (`reports/budget/2026-11-21_2211_a4e97e1.md`); native Linux not measured (681 ms under WSLg) |
+| R8 | Kotlin/Wasm and Compose for Web maturity | Go if the Web build compiles and runs the light core in CI from Phase 2 | **closed as go (Phase 2):** the shell builds in CI on every `dev` push (`ci/web.sh`), initial load 4.08 MB gzip |
 | R9 | LibreOffice integration patches (CoinMP, Java bridge, fonts.conf) must be carried on every update | Go if all patches are scripted and applied in CI | scripted in `poc/` |
 | R10 | One developer + AI agents: scope | Phases gate on acceptance criteria; R1 only (no R2+ work before it ships) | process |
 
