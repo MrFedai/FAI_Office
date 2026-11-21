@@ -97,7 +97,9 @@ else
     [ -f "$new/$WIN_APP/$WIN_APP.exe" ] || die "the artifact has no $WIN_APP/$WIN_APP.exe"
     echo "$build_line" >"$new/BUILD.txt"
     if [ -d "$inst" ]; then
-        echo "   replacing the previous CI build: $(cat "$inst/BUILD.txt" 2>/dev/null || echo unknown)"
+        # Only a folder this script made (BUILD.txt) is replaced; WIN_INSTALL_DIR may point at anything.
+        [ -f "$inst/BUILD.txt" ] || die "$(wslpath -w "$inst") exists but is not a CI build folder (no BUILD.txt): not replacing it"
+        echo "   replacing the previous CI build: $(cat "$inst/BUILD.txt")"
         rm -rf "$inst"
     fi
     mv "$new" "$inst"
