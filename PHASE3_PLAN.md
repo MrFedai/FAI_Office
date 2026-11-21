@@ -250,7 +250,7 @@ information page (browser test or a scripted check in `ci/web.sh`).
 
 Depends on: P3.1, P3.2.
 
-### P3.7 Recent files and folder library
+### P3.7 Recent files and folder library — YAPILDI (dev f6e6744)
 
 Efor: medium
 
