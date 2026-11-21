@@ -86,7 +86,7 @@ compile error outside safe save; null on Web). One contract suite (`FileAccessCo
 names) runs on the fake (desktop, Android host, Wasm) and on real temp files (desktop). New dependency:
 kotlinx-coroutines 1.9.0 (Apache-2.0), the version Compose already ships, for cancellation and `Dispatchers.IO`.
 
-### P3.2 Format detection
+### P3.2 Format detection — YAPILDI (dev 5736a53)
 
 Efor: high
 
