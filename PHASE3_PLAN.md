@@ -246,7 +246,7 @@ or `READ_MEDIA_*` (self-tested). Measurable: logcat tag `FaiFiles` (one line per
 listing with entry count and time); `--ez org.faioffice.extra.MEASURE_FOLDERS true` lists every library folder once.
 The file information page that shows the events is P3.8; the A55 checks are the owner's.
 
-### P3.5 Windows / desktop file access
+### P3.5 Windows / desktop file access — YAPILDI (dev b351a38)
 
 Efor: high
 
