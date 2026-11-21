@@ -51,6 +51,7 @@ data class DesktopDirs(
             override: String?,
         ): DesktopDirs {
             if (!override.isNullOrBlank()) return Path.of(override).let { DesktopDirs(it, it) }
+
             fun dir(
                 variable: String,
                 fallback: String,
@@ -231,7 +232,11 @@ class DesktopFiles private constructor(
             System.setProperty("apple.awt.fileDialogForDirectories", "true")
             try {
                 val dialog = FileDialog(owner).apply { isVisible = true }
-                val chosen = dialog.files.orEmpty().firstOrNull()?.toPath()
+                val chosen =
+                    dialog.files
+                        .orEmpty()
+                        .firstOrNull()
+                        ?.toPath()
                 dialog.dispose()
                 return chosen
             } finally {
@@ -246,7 +251,8 @@ class DesktopFiles private constructor(
                 fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
                 isAcceptAllFileFilterUsed = false
             }
-        return if (chooser.showOpenDialog(owner) == JFileChooser.APPROVE_OPTION) chooser.selectedFile?.toPath() else null
+        val approved = chooser.showOpenDialog(owner) == JFileChooser.APPROVE_OPTION
+        return if (approved) chooser.selectedFile?.toPath() else null
     }
 
     private val systemLook: Unit by lazy {
@@ -331,7 +337,12 @@ class DesktopFiles private constructor(
                     System.getProperty("user.home").orEmpty(),
                     System.getProperty(DesktopDirs.PROPERTY),
                 )
-            val commandLine = ProcessHandle.current().info().commandLine().orElse(null)
+            val commandLine =
+                ProcessHandle
+                    .current()
+                    .info()
+                    .commandLine()
+                    .orElse(null)
             val argv = DesktopCommandLine.programArgs(args.toList(), os == DesktopOs.Windows, commandLine)
             val paths = DesktopCommandLine.files(argv, Path.of("").toAbsolutePath())
 
@@ -402,7 +413,12 @@ object DesktopDrop {
                 uriList != null && transferable.isDataFlavorSupported(uriList) -> {
                     val text = transferable.getTransferData(uriList) as? String
                     // RFC 2483: one URI per line (`#` lines are comments); only local files count.
-                    val uris = text.orEmpty().lines().map { it.trim() }.filter { it.startsWith("file:", true) }
+                    val uris =
+                        text
+                            .orEmpty()
+                            .lines()
+                            .map { it.trim() }
+                            .filter { it.startsWith("file:", true) }
                     DesktopCommandLine.files(listOf("--") + uris, Path.of("").toAbsolutePath())
                 }
 

@@ -146,11 +146,12 @@ class SingleInstanceTest {
     @Test
     fun lockHeldButNobodyListeningRunsStandalone() {
         // Lock taken, socket never bound (a frozen app): the launch gives up after its retries and opens alone.
-        val lock = java.nio.channels.FileChannel.open(
-            dir.resolve("instance.lock"),
-            java.nio.file.StandardOpenOption.CREATE,
-            java.nio.file.StandardOpenOption.WRITE,
-        )
+        val lock =
+            java.nio.channels.FileChannel.open(
+                dir.resolve("instance.lock"),
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.WRITE,
+            )
         lock.use {
             it.lock()
             assertIs<SingleInstance.Role.Standalone>(SingleInstance(dir).claim(listOf("/c")) { })

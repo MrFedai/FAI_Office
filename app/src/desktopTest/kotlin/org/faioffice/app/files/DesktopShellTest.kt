@@ -20,7 +20,10 @@ class DesktopShellTest {
 
     @Test
     fun showInFolderUsesEachSystemsFileManager() {
-        assertEquals(listOf("explorer.exe", "/select,", file.toString()), DesktopShell.showInFolder(DesktopOs.Windows, file))
+        assertEquals(
+            listOf("explorer.exe", "/select,", file.toString()),
+            DesktopShell.showInFolder(DesktopOs.Windows, file),
+        )
         assertEquals(listOf("open", "-R", file.toString()), DesktopShell.showInFolder(DesktopOs.MacOs, file))
         val linux = DesktopShell.showInFolder(DesktopOs.Linux, file)
         assertEquals("dbus-send", linux.first())
@@ -34,7 +37,10 @@ class DesktopShellTest {
             listOf("D:\\Win\\System32\\OpenWith.exe", file.toString()),
             DesktopShell.openWith(DesktopOs.Windows, file, "D:\\Win"),
         )
-        assertEquals("C:\\Windows\\System32\\OpenWith.exe", DesktopShell.openWith(DesktopOs.Windows, file, null)?.first())
+        assertEquals(
+            "C:\\Windows\\System32\\OpenWith.exe",
+            DesktopShell.openWith(DesktopOs.Windows, file, null)?.first(),
+        )
         assertNull(DesktopShell.openWith(DesktopOs.Linux, file, null))
         assertNull(DesktopShell.openWith(DesktopOs.MacOs, file, null))
     }
