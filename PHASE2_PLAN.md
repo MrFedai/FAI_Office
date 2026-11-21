@@ -102,7 +102,7 @@ radius in `app/`; a contrast test (≥ 4.5:1, every text colour on every surface
 
 Ask owner: theme default, follow the system theme (Android 10+, desktop, browser) or dark by default.
 
-### P2.5 Shell and navigation
+### P2.5 Shell and navigation — YAPILDI (dev e9fae7b)
 
 Efor: high
 
