@@ -3,12 +3,12 @@
 Ücretsiz, açık kaynak (MPL-2.0), çevrimdışı öncelikli ofis paketi: belge, tablo, sunum, PDF, görüntüleme, dönüştürme,
 arşiv; hepsi tek uygulamada. Platform sırası (sahip, 21.11.2026): Android + Windows, Web, Linux, belki macOS / iOS.
 Ortak kurallar (yanıt tarzı, çalışma, kesin kurallar, model / işçi, graphify): `~/.claude/CLAUDE.md` (`~/PROJECTS/claude-ortak`).
-Burada yalnız bu projenin farkı. Kabuk: Compose Multiplatform (Faz 2, `PHASE2_PLAN.md`); `DESIGN.md` P2.4'te yazılır.
+Burada yalnız bu projenin farkı. Kabuk: Compose Multiplatform (Faz 2, `PHASE2_PLAN.md`); arayüz kuralları `DESIGN.md`.
 
 **Tek uygulama:** Writer, Sheets, Slides, PDF ayrı uygulama olmaz; ağır Office motoru ayrı modül, gerektiğinde yüklenir.
 **Lisans:** AGPL, yalnız-GPL ve özgür olmayan bağımlılık eklenmez (`MASTER_SPEC.md` bölüm 11).
 **Bulut yok:** hesap, reklam, abonelik, ücretli servis, sunucuda belge işleme yok.
-**Faz 1 onaylandı (18.11.2026);** ürün kodu `app/`, `core/`, `androidApp/`; `poc/` yalnız referans, ürün yapısına girmez.
+**Faz 1 onaylandı (18.11.2026), Faz 2 onaylandı (21.11.2026, v0.2.0);** ürün kodu `app/`, `core/`, `androidApp/`; `poc/` yalnız referans, ürün yapısına girmez.
 Plan ve kararlar: `MASTER_SPEC.md` (bölüm 0 = kilitli kararlar). Durum notu: `~/fai_notes/FAI_Office_DURUM.md`
 (oturum başında oku, sonunda güncelle).
 

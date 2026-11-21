@@ -168,7 +168,7 @@ Done when: the Windows build passes CI; the app opens on the owner's Windows PC 
 
 Depends on: P2.5; P2.8 scripts.
 
-### P2.9 Phase 2 close
+### P2.9 Phase 2 close — YAPILDI (dev 695e1ed; owner approved Phase 2 on 2026-11-21)
 
 Efor: medium
 
