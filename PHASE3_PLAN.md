@@ -167,6 +167,40 @@ passes on the Windows CI runner.
 
 Depends on: P3.1.
 
+Result: `SafeSave` in `org.faioffice.core.files` (`core/commonMain`), the only class that opts into `@SafeSaveOnly`;
+documents are written with `save(target, source, acceptLosses)` or `saveAsCopy(destination, source, overwrite)`,
+where the engine's `SaveSource` writes the bytes and carries two hooks: `lossyElements()` (non-empty stops the
+save with `SaveError.LossyElements` until the user accepts; the copy skips it; used from Phase 7) and
+`validate(RandomAccessReader)` (format check of the written file before it counts). Atomic path
+(`RawFileWrites.atomicReplace`, desktop): journal entry, temporary sibling `<name>.fai-save.<n>.tmp`, write, flush
+(fsync), verify (re-read: size + SHA-256 of what was written, then `validate`), atomic `replace`, drop the entry.
+Backup path (content URIs): copy the original to `fai-save-backup.*` in the app-private journal folder, flush,
+verify its hash, write the journal entry (the complete entry marks the backup valid; only then is the original
+touched), write the target in truncate mode, flush, verify, drop backup then entry; on any failure, exception or
+cancellation the backup is written back and verified. Results: `SaveResult.Saved(target, size, sha256)` or
+`Failed(error, step, leftoverKept)` with `SaveError.File(FileError)` / `Unsupported` (Web, no `rawWrites`) /
+`VerificationFailed` / `LossyElements`; `leftoverKept` only when cleanup or the restore failed too. Locked:
+`FileError.Locked` (`SaveResult.isLocked`), on desktop also `AccessDeniedException` from `replace` on a writable file
+in a writable folder (Windows refuses to replace a file another program holds open); the UI offers "Save as copy",
+which refuses an existing destination unless `overwrite`. Recovery: every save keeps a journal entry
+(`fai-save-journal.*`, line-based text ending in `end`, so a cut-off entry is detected) while it runs;
+`findLeftovers()` at start lists `UnsavedTemporary`, `Backup` and `Orphan` (backup without a complete entry) items,
+and the user decides with `restore` (backup written back, or the temporary file made the document) or `discard`;
+nothing holding user data is deleted without that call (only entries whose leftover is gone or which were cut off).
+Known gap: a crash between creating the temporary file and journalling it leaves that file, still empty, next to
+the document. API change in P3.1's primitives: `RawFileWrites.createIn(folder, nameHint)`, because the journal and
+the backups of content URIs (which have no folder) live in an app-private folder; `FileOp.CreateIn` for the fake.
+SHA-256: `Sha256`, plain common Kotlin (Wasm too), checked against the FIPS vectors, padding edges and odd chunking;
+no new dependency. Tests: `SafeSaveContract` runs on the fake and on real desktop temp files, each on the atomic
+and the content-URI path (`FaultyFileAccess` test wrapper: faults before every call, chunk and flush, no atomic
+replace for the fake content resolver): a power cut after every single operation (temp written, flushed, verified,
+replace started, truncate written, cleanup) and an injected error at every operation both end, after recovery, in
+the old or the new content with nothing left over; leftovers found at the next start and unchanged by finding;
+validator rejection, lossy confirmation, save as copy, locked target, writer exception, Turkish names. Real round
+trip and a file held open by another program (Windows: `Locked`, POSIX: saved) in `DesktopSafeSaveTest`, which
+`ci/windows.sh` now runs on the Windows runner (`:core:desktopTest`). The UI for recovery and the warning is P3.8;
+the Android SAF implementation (backup folder in app-private storage) is P3.4.
+
 ### P3.4 Android file access
 
 Efor: high
