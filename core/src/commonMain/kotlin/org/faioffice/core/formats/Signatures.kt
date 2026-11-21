@@ -4,6 +4,8 @@
 
 package org.faioffice.core.formats
 
+import org.faioffice.core.text.lowercase
+
 /** Fixed-signature formats, recognised from the head of the file alone. */
 internal object Signatures {
     private class Rule(
@@ -160,9 +162,9 @@ internal object TextSniffer {
     ): Boolean = (from until until).all { bytes[it].toInt() and 0xC0 == 0x80 }
 
     private fun markup(text: String): FileFormat {
-        val start = text.trimStart('', ' ', '\t', '\r', '\n')
+        val start = text.trimStart('\uFEFF', ' ', '\t', '\r', '\n')
         if (!start.startsWith("<")) return FileFormat.PlainText
-        val t = start.take(MARKUP_WINDOW).lowercase()
+        val t = start.take(MARKUP_WINDOW).lowercase(INVARIANT)
         return when {
             t.startsWith("<!doctype html") || "<html" in t -> FileFormat.Html
             "<svg" in t -> FileFormat.Svg

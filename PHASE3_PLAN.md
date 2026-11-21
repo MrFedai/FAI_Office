@@ -109,6 +109,44 @@ on a 100 MB file is measured on desktop and reported (head and central directory
 
 Depends on: P3.1.
 
+Result: `org.faioffice.core.formats` in `core/commonMain`, common Kotlin with no new dependency and no platform
+type. `FormatDetector(fileAccess).detect(ref)` reads `FileAccess.info` (name, MIME) and then works inside one
+`readRandom` block; file errors stay `FileResult.Failure` (a folder is `WrongKind(File)`), damaged content is a
+successful `FormatDetection(format, damaged, passwordProtected, extensionMismatch)` with `family` and `level`;
+`detectFormat(reader, name, mime)` is the same without `FileAccess`. Order: empty file, then the 8 KB head: OLE2
+signature, ZIP local or empty-archive signature, `%PDF-` in the first 1 KB (damaged when the last 1 KB has no
+`%%EOF`), fixed signatures (RTF, 7Z, RAR 4 and 5, xz, gzip, bzip2, PNG, JPEG, GIF 87a / 89a, WebP, TIFF II / MM, BMP
+with a valid info-header size, TAR `ustar` at 257), else text: a BOM (UTF-8, UTF-16 LE / BE) means text, a NUL
+byte means binary, strict UTF-8 (a sequence split by the sample end allowed) means text, otherwise legacy 8-bit text
+(Windows-1254) when at most 2 % are C0 control bytes; on text, markup in the first 2 KB gives HTML (doctype or
+`<html`), SVG (`<svg`), XML (`<?xml`, or a tag with a closing tag), plain text by extension becomes CSV (csv, tsv)
+or source code (kt, py, json, md, ...). ZIP: the end record in the last 64 KB + 22 bytes (ZIP64 locator and
+record honoured), at most 512 KB of central directory and 4096 entries parsed, only `mimetype` and
+`[Content_Types].xml` kept; a directory past its end record, or one claiming more entries than its bytes hold
+(65535 classic, five million ZIP64, a terabyte directory) is damaged. `mimetype` (≤ 256 bytes) names ODT / OTT /
+ODS / OTS / ODP / OTP / EPUB; `[Content_Types].xml` (≤ 256 KB compressed read, ≤ 64 KB inflated) names DOCX, DOCM,
+DOTX, DOTM, XLSX, XLSM, XLTX, XLTM, PPTX, PPTM, POTX, POTM, PPSX, PPSM by the main-part `ContentType`; another OPC
+package (XPS, XLSB) is a ZIP archive. Deflate is our own raw-DEFLATE decoder (`Inflate.kt`, stored, fixed and
+dynamic Huffman, after zlib's `puff`) that stops at the output limit: a zip bomb part costs 64 KB and still yields
+the type when it is named first. A ZIP without end record (cut file) is damaged; its first local entry still gives
+an ODF type, else the extension picks among ZIP-based formats. OLE2: the header, FAT sectors via the DIFAT (header
+109 entries, chain ≤ 64 sectors) and ≤ 32 directory sectors (loops stop there); stream names give DOC
+(`WordDocument`), XLS (`Workbook` / `Book`), PPT (`PowerPoint Document`), and `EncryptionInfo` + `EncryptedPackage`
+give password-protected OOXML (DOCX / XLSX / PPTX by extension, else `EncryptedOoxml`); a broken header or chain is
+damaged. Extension and MIME are tie-breakers only (text kinds, damaged or encrypted containers); the MIME type
+stands in for a missing extension; `extensionMismatch` is set only when the name's extension belongs to another
+known format (an unknown extension is no disagreement). The format table (`FileFormat`: family, MIME, extensions;
+48 entries) seeds the compatibility matrix: `CompatibilityMatrix.levels` holds every format except `Empty` and
+`Unknown` (46) at level 0 `Recognised` (levels 1–3 = spec section 5). Identifiers are lower-cased with the invariant
+rules (`lowercase("und")`, never the Turkish dotless i). Tests: commonTest (desktop, Android host, Wasm) 32 tests,
+one per format on fixtures generated in the test (ZIP writer, fixed-Huffman deflater, OLE2 writer; a zlib
+dynamic-Huffman `[Content_Types].xml` as hex), hostile cases (truncated ZIP, directory past its end, millions of
+entries, 5096-entry directory over the limit, 20 MB zip bomb part declared as 1 GB, empty file, renamed extensions,
+cut and looping OLE2 chains); desktopTest detects the eight typical documents from `poc/corpus/out` when present
+(8 / 8 locally; skipped in CI, the files are not in git). Measured on desktop (WSL2, temp files, mean of 10 after a
+warm-up): 100 MB DOCX-shaped ZIP (content types first, a 100 MB stored part, directory last) 2.4 ms, 100 MB PDF
+1.6 ms; only the head, the tail and the directory are read.
+
 ### P3.3 Safe-save layer
 
 Efor: high

@@ -83,7 +83,7 @@ class HostileFilesTest {
                 detectBytes("a.docx", withEnd(docx, classic.toByteArray())),
             )
             // ZIP64 record: five million entries; then a directory of a terabyte.
-            for ((entries, dirSize) in listOf(5_000_000L to size, 5_000_000L to 1L shl 40)) {
+            for ((entries, dirSize) in listOf(5_000_000L to size, 5_000_000L to (1L shl 40))) {
                 val body = docx.copyOf(docx.size - 22)
                 val zip64At = body.size.toLong()
                 val end =

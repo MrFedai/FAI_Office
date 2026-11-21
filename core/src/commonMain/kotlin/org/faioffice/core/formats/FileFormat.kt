@@ -3,6 +3,8 @@
 
 package org.faioffice.core.formats
 
+import org.faioffice.core.text.lowercase
+
 /** The app module that opens a format (MASTER_SPEC section 3: one app, modules loaded on demand). */
 enum class ModuleFamily { Documents, Spreadsheets, Presentations, Pdf, Archive, Viewer, Unknown }
 
@@ -120,8 +122,8 @@ enum class FileFormat(
 
         /** The format registered for [mimeType], ignoring parameters such as `; charset=`; null when none is. */
         fun byMimeType(mimeType: String): FileFormat? {
-            val bare = mimeType.substringBefore(';').trim().lowercase()
-            return entries.firstOrNull { it.mimeType?.lowercase() == bare }
+            val bare = mimeType.substringBefore(';').trim().lowercase(INVARIANT)
+            return entries.firstOrNull { it.mimeType?.lowercase(INVARIANT) == bare }
         }
     }
 }
@@ -157,3 +159,6 @@ object CompatibilityMatrix {
     /** The level of [format]; null for the non-formats. */
     fun levelOf(format: FileFormat): CompatLevel? = levels[format]
 }
+
+/** Case rules for identifiers (extensions, MIME types, markup): language-neutral, never Turkish dotless i. */
+internal const val INVARIANT = "und"

@@ -10,6 +10,7 @@ import org.faioffice.core.files.FileRef
 import org.faioffice.core.files.FileResult
 import org.faioffice.core.files.RandomAccessReader
 import org.faioffice.core.files.readBytes
+import org.faioffice.core.text.lowercase
 
 /**
  * What a file is.
@@ -97,7 +98,7 @@ private suspend fun compound(
     extension: String?,
 ): Guess {
     val directory = CompoundFile.directory(reader)
-    val names = directory.names.mapTo(mutableSetOf()) { it.lowercase() }
+    val names = directory.names.mapTo(mutableSetOf()) { it.lowercase(INVARIANT) }
     val damaged = directory.damaged
     return when {
         "encryptedpackage" in names && "encryptioninfo" in names -> {
@@ -221,7 +222,7 @@ internal fun extensionOf(name: String?): String? =
         ?.substringAfterLast('\\')
         ?.takeIf { '.' in it }
         ?.substringAfterLast('.')
-        ?.lowercase()
+        ?.lowercase(INVARIANT)
         ?.takeIf { it.isNotEmpty() }
 
 private fun byExtension(
