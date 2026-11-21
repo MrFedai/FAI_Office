@@ -126,7 +126,7 @@ Compose resources for English and Turkish, system language by default, override 
 Done when: no user-visible literal outside resources (lint check); a test switches the language and finds no
 missing key; a casing test passes with `tr` locale.
 
-### P2.7 Screen package
+### P2.7 Screen package — YAPILDI (dev 1a3307a)
 
 Efor: medium
 
