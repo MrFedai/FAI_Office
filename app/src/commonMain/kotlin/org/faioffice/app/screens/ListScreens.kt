@@ -381,7 +381,7 @@ fun FamilyScreen(
 ) {
     val layout = scope.layout
     val files = scope.files
-    LaunchedEffect(family, files.recents, files.folders) { files.loadFamily(family) }
+    LaunchedEffect(family, files.version) { files.loadFamily(family) }
     val listing = files.family(family)
     if (listing.items.isEmpty() && !listing.loading) {
         EmptyState(

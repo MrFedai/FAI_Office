@@ -6,6 +6,7 @@ package org.faioffice.app.files
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,6 +114,10 @@ class FilesModel(
     var folderError: FileError? by mutableStateOf(null)
         private set
 
+    /** Grows with every change of the library or an opened file; the family screens read their folders again. */
+    var version: Int by mutableIntStateOf(0)
+        private set
+
     private val families = mutableStateMapOf<ModuleFamily, FamilyListing>()
     private val pending = mutableSetOf<FileRef>()
     private var session: List<RecentEntry> = emptyList()
@@ -132,13 +137,14 @@ class FilesModel(
     /** Re-reads recent files (each state checked now), folders and the switch. */
     suspend fun refresh() {
         val lib = library
-        if (lib == null) {
+        if (lib != null) {
+            recents = lib.store.recentsWithState().map { it.entry.toItem(it.state) }
+            folders = lib.store.folders()
+            rememberRecent = lib.store.rememberRecent()
+        } else {
             recents = session.map { it.toItem(EntryState.Available) }
-            return
         }
-        recents = lib.store.recentsWithState().map { it.entry.toItem(it.state) }
-        folders = lib.store.folders()
-        rememberRecent = lib.store.rememberRecent()
+        version++
     }
 
     /** One event of the file channel. */
@@ -154,13 +160,11 @@ class FilesModel(
                 opened = request
                 navigator.openFile(request.ref)
                 refresh()
-                families.clear()
             }
 
             is FileEvent.FolderAdded -> {
                 folderError = null
                 refresh()
-                families.clear()
             }
 
             is FileEvent.FolderFailed -> {
@@ -261,7 +265,6 @@ class FilesModel(
         scope.launch {
             block()
             refresh()
-            families.clear()
         }
     }
 
