@@ -5,6 +5,7 @@
 package org.faioffice.app.shell
 
 import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -28,6 +29,8 @@ class ShellKeyboardTest {
     @AfterTest
     fun restoreLocale() = Locale.setDefault(systemLocale)
 
+    // Synthetic key events: the plain KeyEvent factory is internal to compose-ui (test only, same pinned version).
+    @OptIn(InternalComposeUiApi::class)
     private fun ImageComposeScene.press(
         key: Key,
         alt: Boolean = false,

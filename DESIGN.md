@@ -136,6 +136,12 @@ top tabs, and a tablet shows documents better with a side rail than with a phone
   `primaryInk` text.
 - **Top bar:** title of the current destination, search, settings, theme; on desktop also open-file actions.
 - Forms and dialogs: bottom sheet on phone, centred dialog ≤ 720 elsewhere (✕ + Esc).
+- **Shell code** (P2.5a): `app/src/commonMain/kotlin/org/faioffice/app/shell/`; `shellLayoutFor(width, height,
+  touch)` picks the layout, `ShellNavigator` is the back stack (Home is the root; back at Home goes to the system).
+  Keyboard: Tab / Shift+Tab move focus, Enter / Space select, Alt+Left or Esc go back; the focus ring (`primary`,
+  2 dp) shows only after a key press. Android: predictive back scales and fades the content.
+- **Icons:** Lucide (ISC), stroke 2 on the 24 grid, drawn at `icon` 20 and tinted with theme colours; path data
+  local in `shell/FaiIcons.kt` with the ISC notice. No remote icon or icon font.
 
 ## 7. Document view vs edit mode (touch)
 
@@ -166,3 +172,7 @@ top tabs, and a tablet shows documents better with a side rail than with a phone
 `kmp_test app` renders a token preview (palette, file types, type scale, controls, surfaces, recent files with
 real-length TR / EN names) to `app/build/bakis/<theme>_<size>_tokens.png`, themes `acik` / `koyu`, sizes 390x844
 and 1920x950 (desktop JVM, `ImageComposeScene`). P2.7 extends this into the screen package.
+
+Shell shots (P2.5a, `ShellShotTest`): `app/build/bakis/<theme>_<size>_shell.png` at 390x844, 700x900, 1100x800 and
+1920x950 with Home selected, plus `<theme>_<size>_shell_pdf.png` (PDF selected) at 390x844 and 1920x950; light shots
+in Turkish, dark shots in English.
