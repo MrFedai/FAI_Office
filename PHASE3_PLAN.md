@@ -264,6 +264,51 @@ longer than 260 characters.
 
 Depends on: P3.1, P3.2.
 
+Result: access is the P3.1 `DesktopFileAccess` (`core/desktopMain`, plain `java.nio`; on Windows `java.nio` adds the
+`\\?\` long-path prefix itself). Its near twin `PathFileAccess` (`core/androidMain`) stays separate for now (sharing
+needs a jvm+android source set; "Sonra bak"). The contract and safe-save tests also run with their root deep in a
+Turkish-named tree longer than 300 characters (`DesktopLongPathTest`, plus a Turkish file name round trip: info, list,
+read, safe save); `ci/windows.sh` already runs `:core:desktopTest` on the runner's NTFS disk, Linux runs it with
+`LC_ALL=C.UTF-8` (`core/build.gradle.kts`). Desktop layer in `app/desktopMain` (`org.faioffice.app.files`), no new
+dependency: `DesktopFiles` (the `FileActions` of the desktop, `services` for P3.8; library store in the app data
+folder, `NoPersistedGrants`), started in `Main.kt` before the window. App data: Windows `%APPDATA%\FAI Office`
+(library, journal) and `%LOCALAPPDATA%\FAI Office` (instance lock and socket), Linux `$XDG_DATA_HOME/fai-office`,
+macOS `~/Library/Application Support/FAI Office`; `-Dfai.data.dir` overrides (`DesktopDirs`). Command line:
+`DesktopCommandLine` (relative paths against the working folder, `file:` URIs decoded, other URIs dropped, options
+before `--` skipped, deduplicated, at most 100); on Windows the arguments are re-read from the process's UTF-16 command
+line (`ProcessHandle`, split by the C runtime rules) because `main(args)` passes the ANSI code page and loses Turkish
+letters on a non-Turkish Windows. Single instance: `SingleInstance` holds `instance.lock` (`FileChannel.tryLock`) and
+listens on `instance.sock` (JDK 16+ `UnixDomainSocketAddress`, Windows 10 1803+ and Linux, no network port); a second
+launch sends its absolute paths (`InstanceProtocol`: `FAIO`, version, count, length-prefixed UTF-8, bounded, one
+accept byte; 3 s deadline, 2 s of connect retries) and exits; the running app queues them (`OpenOrigin.Desktop`) and
+brings its window forward (restore, `toFront`, a moment of always-on-top so Windows raises it). When the lock or socket
+fails (folder not writable, socket path not encodable in the ANSI code page or too long, peer frozen) the launch runs
+standalone and opens its files itself. Drag and drop: Compose `dragAndDropTarget` on a box around `App()` (nothing
+drawn), `DesktopDrop` reads the AWT file list or a `text/uri-list`. Dialogs: JDK only, AWT `FileDialog` (multiple
+files, no filter: detection decides, like the Android picker) and for folders Swing `JFileChooser` (directories only,
+system look and feel set on first use; macOS `FileDialog` in folder mode); the dialog title is the system default (no
+new text before P3.8). If the owner's Windows look check rejects them, the section 11 candidate is LWJGL's
+`nativefiledialog` binding (LWJGL BSD-3, nativefiledialog zlib); not added. "Open in another app": Windows
+`OpenWith.exe <file>` (the system chooser), Linux / macOS `Desktop.open` (default app). "Show in folder" (new in
+`FileActions`: `canShowInFolder`, `showInFolder(ref)`, default false, so Android and Web are unchanged): Explorer
+`/select,`, macOS `open -R`, Linux freedesktop `FileManager1.ShowItems` over `dbus-send`, else the parent folder.
+Installer: jpackage's own file associations write the default value of `Software\Classes\.ext` (a default-app claim),
+so they are unused. `app/msi/open-with.wxs` holds one per-user component: ProgID `FAIOffice.File` (open command
+`"[INSTALLDIR]fai-office.exe" "%1"`), `Applications\fai-office.exe` (`FriendlyAppName`, `SupportedTypes`) and
+`Software\Classes\.<ext>\OpenWithProgids` for the 61 extensions of every detected format with a registered MIME type
+(the Android set); never the `.ext` default, nothing under `RegisteredApplications`; `WindowsOpenWithTest` checks list
+and rules. `packageMsi` (Compose) gets a `doLast` that takes jpackage's `main.wxs` from the packaging JDK (jrt image),
+adds `<ComponentGroupRef Id="FaiOpenWith"/>` to `DefaultFeature` and the fragment, and runs jpackage again with
+Compose's argument file plus `--resource-dir` last (Compose passes its own empty resource dir after any extra
+argument; jpackage keeps the last value). Windows Installer removes the component's registry values on uninstall.
+`ci/windows.sh` fails when the MSI has no `OpenWithProgids` strings. Measurable: stderr lines `FaiFiles: ...` (single
+instance role and claim / hand-over time, incoming origin and count per way: command line, second launch, drop, picker,
+folder; per open format, size and time from `FileHub`; shell hand-offs started or failed with time), no names or paths.
+Unit tests: `DesktopCommandLineTest`, `InstanceProtocolTest`, `SingleInstanceTest` (real socket: hand-over, window-only
+request, stale socket file, take-over after close, frozen peer, unusable folder), `DesktopShellTest`. Linux smoke run (WSLg, not a measurement): a Turkish-named file from the command line
+reached the hub, a second launch with another one handed it over and exited (about 0.2 s). Not verified here: the MSI build and its registry entries (Windows CI only) and the owner's Windows checks (Explorer "Open with",
+drop, dialog look, second launch raising the window).
+
 ### P3.6 Web file access (minimal) — YAPILDI (dev 9e84cbc)
 
 Efor: medium
