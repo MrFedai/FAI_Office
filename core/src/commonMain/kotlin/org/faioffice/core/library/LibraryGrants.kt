@@ -23,6 +23,10 @@ fun wantedGrants(
 /**
  * Takes the grants the library's recent files and folders need and releases the others ([wantedGrants]). Call it
  * after every change of the library (a file kept in recents, a folder added, an entry removed, recents cleared or
- * turned off) and once at start, which also drops grants left behind by an interrupted run.
+ * turned off). Pass [releaseUnwanted] false when the change did not reach the disk: the in-memory library may then be
+ * incomplete, and a grant released by mistake cannot be taken back without the user picking the file again.
  */
-suspend fun LibraryStore.syncGrants(grants: PersistedGrants): GrantSync = grants.sync(wantedGrants(recents(), folders()))
+suspend fun LibraryStore.syncGrants(
+    grants: PersistedGrants,
+    releaseUnwanted: Boolean = true,
+): GrantSync = grants.sync(wantedGrants(recents(), folders()), releaseUnwanted)

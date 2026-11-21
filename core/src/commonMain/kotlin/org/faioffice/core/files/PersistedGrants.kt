@@ -90,13 +90,19 @@ fun coveredBy(
 
 /**
  * Brings the held grants in line with [wanted] (priority order, see [planGrants]): releases first, so the limit has
- * room, then takes. A grant the platform refuses is reported in [GrantSync.failed], not retried.
+ * room, then takes. A grant the platform refuses is reported in [GrantSync.failed], not retried. With
+ * [releaseUnwanted] false nothing is released (the caller is not sure [wanted] is complete, for example after a
+ * failed store write).
  */
-suspend fun PersistedGrants.sync(wanted: List<FileRef>): GrantSync {
+suspend fun PersistedGrants.sync(
+    wanted: List<FileRef>,
+    releaseUnwanted: Boolean = true,
+): GrantSync {
     val plan = planGrants(held(), wanted, limit)
-    plan.release.forEach { release(it) }
+    val released = if (releaseUnwanted) plan.release else emptyList()
+    released.forEach { release(it) }
     val (taken, failed) = plan.take.partition { take(it) }
-    return GrantSync(taken, plan.release, failed, plan.dropped)
+    return GrantSync(taken, released, failed, plan.dropped)
 }
 
 private const val TREE_SEGMENT = "/tree/"

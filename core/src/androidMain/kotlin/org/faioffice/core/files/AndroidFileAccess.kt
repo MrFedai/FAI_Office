@@ -254,8 +254,13 @@ class AndroidFileAccess(
                 if (writing) FileError.ReadOnly else FileError.PermissionLost
             }
 
-            "EROFS" in text || text.contains("read-only", ignoreCase = true) -> FileError.ReadOnly
-            else -> FileError.NotFound
+            "EROFS" in text || text.contains("read-only", ignoreCase = true) -> {
+                FileError.ReadOnly
+            }
+
+            else -> {
+                FileError.NotFound
+            }
         }
     }
 

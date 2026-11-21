@@ -26,7 +26,8 @@ class SafPersistedGrants(
 
     override suspend fun held(): Set<FileRef> =
         withContext(Dispatchers.IO) {
-            resolver.persistedUriPermissions.mapTo(LinkedHashSet()) { FileRef(FileRef.Kind.ContentUri, it.uri.toString()) }
+            val held = resolver.persistedUriPermissions
+            held.mapTo(LinkedHashSet()) { FileRef(FileRef.Kind.ContentUri, it.uri.toString()) }
         }
 
     override suspend fun take(ref: FileRef): Boolean {
@@ -68,8 +69,8 @@ class SafPersistedGrants(
 }
 
 /** Persisted URI permissions the platform keeps per app: 128 up to Android 10, 512 from Android 11 (API 30). */
-fun persistedGrantLimit(sdkInt: Int): Int = if (sdkInt >= ANDROID_11) GRANTS_FROM_ANDROID_11 else GRANTS_UP_TO_ANDROID_10
+fun persistedGrantLimit(sdkInt: Int): Int = if (sdkInt >= ANDROID_11) GRANTS_ANDROID_11 else GRANTS_ANDROID_10
 
 private const val ANDROID_11 = 30
-private const val GRANTS_FROM_ANDROID_11 = 512
-private const val GRANTS_UP_TO_ANDROID_10 = 128
+private const val GRANTS_ANDROID_11 = 512
+private const val GRANTS_ANDROID_10 = 128

@@ -14,11 +14,14 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PersistedGrantsTest {
-    private fun doc(id: String) = FileRef(FileRef.Kind.ContentUri, "content://com.android.externalstorage.documents/document/$id")
+    private fun doc(id: String) =
+        FileRef(FileRef.Kind.ContentUri, "content://com.android.externalstorage.documents/document/$id")
 
-    private val tree = FileRef(FileRef.Kind.ContentUri, "content://com.android.externalstorage.documents/tree/primary%3ABelgeler")
+    private val tree =
+        FileRef(FileRef.Kind.ContentUri, "content://com.android.externalstorage.documents/tree/primary%3ABelgeler")
 
-    private fun inTree(id: String) = FileRef(FileRef.Kind.ContentUri, "${tree.location}/document/primary%3ABelgeler%2F$id")
+    private fun inTree(id: String) =
+        FileRef(FileRef.Kind.ContentUri, "${tree.location}/document/primary%3ABelgeler%2F$id")
 
     /** Grants in memory with a platform limit; refs in [refused] have no persistable grant on offer. */
     private class FakeGrants(
@@ -59,7 +62,8 @@ class PersistedGrantsTest {
 
     @Test
     fun filesInsideAWantedTreeNeedNoGrantOfTheirOwn() {
-        val plan = planGrants(held = setOf(inTree("a.pdf")), wanted = listOf(tree, inTree("a.pdf"), doc("x")), limit = 2)
+        val plan =
+            planGrants(held = setOf(inTree("a.pdf")), wanted = listOf(tree, inTree("a.pdf"), doc("x")), limit = 2)
         assertEquals(listOf(tree, doc("x")), plan.take)
         assertEquals(listOf(inTree("a.pdf")), plan.release)
         assertTrue(coveredBy(inTree("a.pdf"), tree))
@@ -97,6 +101,16 @@ class PersistedGrantsTest {
             assertEquals(listOf(shared), result.failed)
             assertEquals(setOf(doc("a")), grants.held())
             assertEquals(listOf(shared), grants.sync(listOf(shared, doc("a"))).failed)
+        }
+
+    @Test
+    fun syncWithoutReleasingOnlyTakes() =
+        runTest {
+            val grants = FakeGrants(limit = 5)
+            grants.grants += doc("kept")
+            val result = grants.sync(listOf(doc("a")), releaseUnwanted = false)
+            assertEquals(setOf(doc("kept"), doc("a")), grants.held())
+            assertEquals(emptyList(), result.released)
         }
 
     @Test

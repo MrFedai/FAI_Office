@@ -56,7 +56,11 @@ internal class SafDocuments(
                     while (cursor.moveToNext()) {
                         context.ensureActive()
                         val id = cursor.stringAt(idColumn) ?: continue
-                        val child = FileRef(FileRef.Kind.ContentUri, DocumentsContract.buildDocumentUriUsingTree(uri, id).toString())
+                        val child =
+                            FileRef(
+                                FileRef.Kind.ContentUri,
+                                DocumentsContract.buildDocumentUriUsingTree(uri, id).toString(),
+                            )
                         add(documentRow(cursor, child, writeGranted, fallbackName = id))
                     }
                 }
@@ -85,15 +89,19 @@ internal class SafDocuments(
     fun documentUriOf(uri: Uri): Uri? =
         when {
             DocumentsContract.isDocumentUri(context, uri) -> uri
-            DocumentsContract.isTreeUri(uri) -> DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri))
+            DocumentsContract.isTreeUri(uri) -> treeRoot(uri)
             else -> null
         }
+
+    private fun treeRoot(tree: Uri): Uri =
+        DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
 
     /** Whether the app holds [flag] (read or write URI permission) for [uri], temporary or persisted. */
     fun granted(
         uri: Uri,
         flag: Int,
-    ): Boolean = context.checkUriPermission(uri, Process.myPid(), Process.myUid(), flag) == PackageManager.PERMISSION_GRANTED
+    ): Boolean =
+        context.checkUriPermission(uri, Process.myPid(), Process.myUid(), flag) == PackageManager.PERMISSION_GRANTED
 
     private fun openableInfo(
         ref: FileRef,
@@ -131,12 +139,13 @@ internal class SafDocuments(
         val mime = cursor.stringAt(cursor.getColumnIndex(Document.COLUMN_MIME_TYPE))
         val folder = mime == Document.MIME_TYPE_DIR
         val flags = cursor.longAt(cursor.getColumnIndex(Document.COLUMN_FLAGS))?.toInt() ?: 0
+        val modified = cursor.longAt(cursor.getColumnIndex(Document.COLUMN_LAST_MODIFIED))
         return FileInfo(
             ref = ref,
             name = cursor.stringAt(cursor.getColumnIndex(Document.COLUMN_DISPLAY_NAME)) ?: fallbackName ?: ref.location,
             kind = if (folder) EntryKind.Folder else EntryKind.File,
             size = if (folder) null else cursor.longAt(cursor.getColumnIndex(Document.COLUMN_SIZE)),
-            modifiedEpochMillis = cursor.longAt(cursor.getColumnIndex(Document.COLUMN_LAST_MODIFIED))?.takeIf { it > 0 },
+            modifiedEpochMillis = modified?.takeIf { it > 0 },
             mimeType = if (folder) null else mime,
             writable = !folder && writeGranted && (flags and Document.FLAG_SUPPORTS_WRITE) != 0,
         )

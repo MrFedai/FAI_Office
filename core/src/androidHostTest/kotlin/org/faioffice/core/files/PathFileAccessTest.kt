@@ -38,7 +38,8 @@ class PathFileAccessTest : FileAccessContract() {
                 return PathFileAccess.refOf(file)
             }
 
-            override fun folder(path: String): FileRef = PathFileAccess.refOf(Files.createDirectories(dir.resolve(path)))
+            override fun folder(path: String): FileRef =
+                PathFileAccess.refOf(Files.createDirectories(dir.resolve(path)))
 
             override fun missing(path: String): FileRef = PathFileAccess.refOf(dir.resolve(path))
 
@@ -92,7 +93,8 @@ class PathSafeSaveTest : SafeSaveContract() {
             val documents: Path = Files.createDirectories(dir.resolve("Belgeler Öğüş"))
             override val inner: FileAccess = PathFileAccess()
             override val folder: FileRef = PathFileAccess.refOf(documents)
-            override val journal: FileRef = PathFileAccess.refOf(Files.createDirectories(dir.resolve("files/safe-save")))
+            val journalDir: Path = Files.createDirectories(dir.resolve("files/safe-save"))
+            override val journal: FileRef = PathFileAccess.refOf(journalDir)
 
             override fun file(
                 name: String,

@@ -35,6 +35,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":core"))
+            // File hub (P3.4): opened files and added folders flow to the screens off the main thread.
+            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
@@ -45,7 +47,10 @@ kotlin {
         }
         // Contrast test and token preview screenshots (ImageComposeScene) run on the desktop JVM only.
         named("desktopTest") {
-            dependencies { implementation(libs.kotlin.test) }
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+            }
         }
     }
 }
