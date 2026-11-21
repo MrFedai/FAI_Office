@@ -64,48 +64,77 @@ class EmptyStateContent(
 val Destination.emptyState: EmptyStateContent
     get() =
         when (this) {
-            Destination.Home ->
-                EmptyStateContent(Res.string.empty_title_home, Res.string.empty_body_home, Res.string.action_open_file)
-            Destination.RecentFiles ->
+            Destination.Home -> {
+                EmptyStateContent(
+                    Res.string.empty_title_home,
+                    Res.string.empty_body_home,
+                    Res.string.action_open_file,
+                )
+            }
+
+            Destination.RecentFiles -> {
                 EmptyStateContent(
                     Res.string.empty_title_recent_files,
                     Res.string.empty_body_recent_files,
                     Res.string.action_open_file,
                 )
-            Destination.Documents ->
+            }
+
+            Destination.Documents -> {
                 EmptyStateContent(
                     Res.string.empty_title_documents,
                     Res.string.empty_body_documents,
                     Res.string.action_open_document,
                 )
-            Destination.Presentations ->
+            }
+
+            Destination.Presentations -> {
                 EmptyStateContent(
                     Res.string.empty_title_presentations,
                     Res.string.empty_body_presentations,
                     Res.string.action_open_presentation,
                 )
-            Destination.Spreadsheets ->
+            }
+
+            Destination.Spreadsheets -> {
                 EmptyStateContent(
                     Res.string.empty_title_spreadsheets,
                     Res.string.empty_body_spreadsheets,
                     Res.string.action_open_spreadsheet,
                 )
-            Destination.Pdf ->
-                EmptyStateContent(Res.string.empty_title_pdf, Res.string.empty_body_pdf, Res.string.action_open_pdf)
-            Destination.FileConverter ->
+            }
+
+            Destination.Pdf -> {
+                EmptyStateContent(
+                    Res.string.empty_title_pdf,
+                    Res.string.empty_body_pdf,
+                    Res.string.action_open_pdf,
+                )
+            }
+
+            Destination.FileConverter -> {
                 EmptyStateContent(
                     Res.string.empty_title_file_converter,
                     Res.string.empty_body_file_converter,
                     Res.string.action_choose_file,
                 )
-            Destination.Archive ->
+            }
+
+            Destination.Archive -> {
                 EmptyStateContent(
                     Res.string.empty_title_archive,
                     Res.string.empty_body_archive,
                     Res.string.action_open_archive,
                 )
-            Destination.Settings ->
-                EmptyStateContent(Res.string.empty_title_settings, Res.string.empty_body_settings, null)
+            }
+
+            Destination.Settings -> {
+                EmptyStateContent(
+                    Res.string.empty_title_settings,
+                    Res.string.empty_body_settings,
+                    null,
+                )
+            }
         }
 
 /**
