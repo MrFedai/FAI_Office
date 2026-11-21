@@ -219,6 +219,33 @@ state; a folder with 1 000 files lists and its time is reported; the merged mani
 
 Depends on: P3.1, P3.2.
 
+Result: `AndroidFileAccess` (`core/androidMain`, `org.faioffice.core.files`): content URIs through SAF (`SafDocuments`:
+`DocumentsContract` columns for documents and tree URIs, `OpenableColumns` for other providers; display name, size,
+type, `FLAG_SUPPORTS_WRITE` and the held write grant decide `writable`; a tree is listed with
+`buildChildDocumentsUriUsingTree` in one query), path references (app-private storage) through `PathFileAccess`
+(plain `java.nio`, so the P3.1 contract and the P3.3 safe-save contract on the backup path run on the Android host
+JVM). No atomic replace on Android: safe save takes the backup path for every file, journal in `filesDir/safe-save`.
+A provider that cannot seek (pipe) is copied to the cache for `readRandom`; `SecurityException` = `PermissionLost`
+(a refused write with the read grant still held = `ReadOnly`). Grants: `PersistedGrants` (common) with
+`planGrants` / `sync` (folders first, then pinned, then newest recent files; a file inside a wanted tree needs no
+grant; over the limit the tail is dropped; releases before takes) and `SafPersistedGrants` (read + write, else read
+only; limit 128 on Android 10, 512 from 11); `LibraryStore.syncGrants`; desktop / Web use `NoPersistedGrants`. UI-less
+channel in `app/commonMain` (`org.faioffice.app.files`): `FileHub` (one ordered worker; `open(refs, origin)` and
+`addFolder(ref)`; `events: Flow<FileEvent>` with `Opened(OpenRequest(ref, origin, info, detection, error))`,
+`FolderAdded(ref, name, listing, grantKept)`, `FolderFailed`; buffered until the single collector, so a cold-start
+"Open with" is not lost), `FileLibrary` (store mutations with grant sync; a failed store write only takes grants),
+`FileActions` (`openFiles`, `addFolder`, `openInOtherApp`; `NoFileActions`), `FileServices`, `IncomingFiles`
+(intent action + URIs to requests: `content:` only, deduplicated, at most 100). Android: `AndroidFiles` (process-wide;
+library store `filesDir/library/library.txt`, created empty first), `MainActivity` as its host (activity result
+`OpenMultipleDocuments` with `OpenableMimeTypes.picker`, `OpenDocumentTree`), `launchMode="singleTask"`, intents from
+`onCreate` (not on re-creation or from recents) and `onNewIntent`; "Open in another app" = `ACTION_VIEW` chooser with
+the read grant, this app excluded. Manifest: `VIEW` (scheme `content`) and `SEND` / `SEND_MULTIPLE` filters with
+`OpenableMimeTypes.incoming` (registered types of the detected formats plus aliases, lower case), kept equal by
+`AndroidManifestTest`; `ci/android.sh` fails when the merged release manifest names `READ/WRITE/MANAGE_EXTERNAL_STORAGE`
+or `READ_MEDIA_*` (self-tested). Measurable: logcat tag `FaiFiles` (one line per open with format and time, per folder
+listing with entry count and time); `--ez org.faioffice.extra.MEASURE_FOLDERS true` lists every library folder once.
+The file information page that shows the events is P3.8; the A55 checks are the owner's.
+
 ### P3.5 Windows / desktop file access
 
 Efor: high
