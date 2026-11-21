@@ -17,9 +17,10 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * Shell screenshots into build/bakis/<theme>_<size>_shell.png at the four width classes, Home selected; plus
- * <theme>_<size>_shell_pdf.png with PDF selected at phone and desktop size. Light shots are Turkish (longer
- * labels), dark shots English, so both languages are looked at.
+ * Shell screenshots into build/bakis/: every destination screen (empty state) as <theme>_<size>_<screen>.png at
+ * phone 390x844 and desktop 1920x950 (9 x 2 x 2 = 36), plus <theme>_<size>_shell.png with Home at the two middle
+ * width classes (medium 700x900, compact desktop 1100x800). Light shots are Turkish (longer labels), dark shots
+ * English, so both languages are looked at.
  */
 class ShellShotTest {
     private val outDir = File(System.getProperty("bakis.dir") ?: "build/bakis")
@@ -28,8 +29,8 @@ class ShellShotTest {
             Triple("acik", ThemeMode.Light, AppLanguage.Turkish),
             Triple("koyu", ThemeMode.Dark, AppLanguage.English),
         )
-    private val sizes = listOf(390 to 844, 700 to 900, 1100 to 800, 1920 to 950)
-    private val pdfSizes = listOf(390 to 844, 1920 to 950)
+    private val screenSizes = listOf(390 to 844, 1920 to 950)
+    private val shellSizes = listOf(700 to 900, 1100 to 800)
     private val systemLocale: Locale = Locale.getDefault()
 
     @AfterTest
@@ -55,15 +56,21 @@ class ShellShotTest {
         assertTrue(file.length() > 0, "empty shot: $file")
     }
 
+    /** File name part of a destination: RecentFiles -> recent_files. */
+    private val Destination.screenName: String
+        get() = name.replace(Regex("(?<=[a-z])(?=[A-Z])"), "_").lowercase(Locale.ROOT)
+
     @Test
     fun writesShellShots() {
         outDir.mkdirs()
         for ((themeName, mode, language) in themes) {
-            for ((w, h) in sizes) {
-                shot("${themeName}_${w}x${h}_shell.png", w to h, mode, language, Destination.Home)
+            for ((w, h) in screenSizes) {
+                for (d in Destination.entries) {
+                    shot("${themeName}_${w}x${h}_${d.screenName}.png", w to h, mode, language, d)
+                }
             }
-            for ((w, h) in pdfSizes) {
-                shot("${themeName}_${w}x${h}_shell_pdf.png", w to h, mode, language, Destination.Pdf)
+            for ((w, h) in shellSizes) {
+                shot("${themeName}_${w}x${h}_shell.png", w to h, mode, language, Destination.Home)
             }
         }
     }

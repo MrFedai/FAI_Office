@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import org.faioffice.app.resources.Res
 import org.faioffice.app.resources.home_open_by_type
-import org.faioffice.app.resources.status_in_development
 import org.faioffice.app.theme.FaiAlpha
 import org.faioffice.app.theme.FaiRadius
 import org.faioffice.app.theme.FaiSize
@@ -46,67 +45,40 @@ fun Destination.accent(): Color {
     }
 }
 
-/** Icon on a 14 % tint of the destination colour (file badge, 36). */
+/** Icon on a 14 % tint of the destination colour: file badge 36 / icon 20, or [large] 56 / 28 (empty state). */
 @Composable
-fun DestinationBadge(destination: Destination) {
+fun DestinationBadge(
+    destination: Destination,
+    large: Boolean = false,
+) {
     val accent = destination.accent()
     Box(
         Modifier
-            .size(FaiSize.fileBadge)
-            .background(accent.copy(alpha = FaiAlpha.FILE_TINT), RoundedCornerShape(FaiRadius.control)),
+            .size(if (large) FaiSize.emptyBadge else FaiSize.fileBadge)
+            .background(
+                accent.copy(alpha = FaiAlpha.FILE_TINT),
+                RoundedCornerShape(if (large) FaiRadius.card else FaiRadius.control),
+            ),
         contentAlignment = Alignment.Center,
     ) {
-        FaiIcon(destination.icon, accent)
+        FaiIcon(destination.icon, accent, size = if (large) FaiSize.iconLarge else FaiSize.icon)
     }
 }
 
 /**
- * Placeholder of a destination until its screen exists (P2.5 second half): title, one-line description and an
- * honest "in development" chip. Home also shows the file-type tiles, the phone's way to Presentations,
- * Spreadsheets and Archive.
+ * Screen of a destination (P2.5b): its empty state while no file is open; Home adds the file-type tiles below, the
+ * phone's way to Presentations, Spreadsheets and Archive (order fixed by [Destination.HomeTiles]).
  */
 @Composable
-fun DestinationPlaceholder(
+fun DestinationScreen(
     destination: Destination,
     layout: ShellLayout,
     onSelect: (Destination) -> Unit,
 ) {
     val gap = if (layout == ShellLayout.Phone) FaiSpace.s16 else FaiSpace.s24
     Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-        PlaceholderHeader(destination)
+        EmptyState(destination, layout)
         if (destination == Destination.Home) HomeTiles(layout, onSelect)
-    }
-}
-
-@Composable
-private fun PlaceholderHeader(destination: Destination) {
-    Row(horizontalArrangement = Arrangement.spacedBy(FaiSpace.s12)) {
-        DestinationBadge(destination)
-        Column(verticalArrangement = Arrangement.spacedBy(FaiSpace.s4), modifier = Modifier.weight(1f)) {
-            BasicText(
-                stringResource(destination.title),
-                style = FaiTheme.type.pageTitle.copy(color = FaiTheme.colors.text),
-            )
-            BasicText(
-                stringResource(destination.description),
-                style = FaiTheme.type.bodyMobile.copy(color = FaiTheme.colors.text2),
-            )
-            StatusChip()
-        }
-    }
-}
-
-@Composable
-private fun StatusChip() {
-    Box(Modifier.padding(top = FaiSpace.s4)) {
-        BasicText(
-            stringResource(Res.string.status_in_development),
-            style = FaiTheme.type.label.copy(color = FaiTheme.colors.violet),
-            modifier =
-                Modifier
-                    .background(FaiTheme.colors.violetSoft, RoundedCornerShape(FaiRadius.chip))
-                    .padding(horizontal = FaiSpace.s8, vertical = FaiSpace.s2),
-        )
     }
 }
 

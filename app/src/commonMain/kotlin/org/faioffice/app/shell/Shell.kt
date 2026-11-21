@@ -157,6 +157,6 @@ private fun ShellContent(
                 vertical = if (phone) FaiSpace.mobilePad else FaiSpace.pagePadY,
             ),
     ) {
-        DestinationPlaceholder(navigator.current, layout, navigator::navigate)
+        DestinationScreen(navigator.current, layout, navigator::navigate)
     }
 }

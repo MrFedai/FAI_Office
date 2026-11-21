@@ -4,15 +4,6 @@
 package org.faioffice.app.shell
 
 import org.faioffice.app.resources.Res
-import org.faioffice.app.resources.description_archive
-import org.faioffice.app.resources.description_documents
-import org.faioffice.app.resources.description_file_converter
-import org.faioffice.app.resources.description_home
-import org.faioffice.app.resources.description_pdf
-import org.faioffice.app.resources.description_presentations
-import org.faioffice.app.resources.description_recent_files
-import org.faioffice.app.resources.description_settings
-import org.faioffice.app.resources.description_spreadsheets
 import org.faioffice.app.resources.destination_archive
 import org.faioffice.app.resources.destination_documents
 import org.faioffice.app.resources.destination_file_converter
@@ -40,33 +31,16 @@ import org.jetbrains.compose.resources.StringResource
 enum class Destination(
     val title: StringResource,
     val shortLabel: StringResource,
-    val description: StringResource,
 ) {
-    Home(Res.string.destination_home, Res.string.nav_short_home, Res.string.description_home),
-    RecentFiles(
-        Res.string.destination_recent_files,
-        Res.string.nav_short_recent_files,
-        Res.string.description_recent_files,
-    ),
-    Documents(Res.string.destination_documents, Res.string.nav_short_documents, Res.string.description_documents),
-    Presentations(
-        Res.string.destination_presentations,
-        Res.string.nav_short_presentations,
-        Res.string.description_presentations,
-    ),
-    Spreadsheets(
-        Res.string.destination_spreadsheets,
-        Res.string.nav_short_spreadsheets,
-        Res.string.description_spreadsheets,
-    ),
-    Pdf(Res.string.destination_pdf, Res.string.nav_short_pdf, Res.string.description_pdf),
-    FileConverter(
-        Res.string.destination_file_converter,
-        Res.string.nav_short_file_converter,
-        Res.string.description_file_converter,
-    ),
-    Archive(Res.string.destination_archive, Res.string.nav_short_archive, Res.string.description_archive),
-    Settings(Res.string.destination_settings, Res.string.nav_short_settings, Res.string.description_settings),
+    Home(Res.string.destination_home, Res.string.nav_short_home),
+    RecentFiles(Res.string.destination_recent_files, Res.string.nav_short_recent_files),
+    Documents(Res.string.destination_documents, Res.string.nav_short_documents),
+    Presentations(Res.string.destination_presentations, Res.string.nav_short_presentations),
+    Spreadsheets(Res.string.destination_spreadsheets, Res.string.nav_short_spreadsheets),
+    Pdf(Res.string.destination_pdf, Res.string.nav_short_pdf),
+    FileConverter(Res.string.destination_file_converter, Res.string.nav_short_file_converter),
+    Archive(Res.string.destination_archive, Res.string.nav_short_archive),
+    Settings(Res.string.destination_settings, Res.string.nav_short_settings),
     ;
 
     /**

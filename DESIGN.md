@@ -140,6 +140,12 @@ top tabs, and a tablet shows documents better with a side rail than with a phone
   touch)` picks the layout, `ShellNavigator` is the back stack (Home is the root; back at Home goes to the system).
   Keyboard: Tab / Shift+Tab move focus, Enter / Space select, Alt+Left or Esc go back; the focus ring (`primary`,
   2 dp) shows only after a key press. Android: predictive back scales and fades the content.
+- **Empty state** (P2.5b, `shell/EmptyState.kt`): every destination opens on one bordered `surface` card, centred:
+  large badge (`emptyBadge` 56, icon `iconLarge` 28, destination meaning colour on its 14 % tint), short title
+  (`pageTitle`), one sentence (`body`, `bodyMobile` on phone, `text2`), then the primary action and the violet
+  "In development" chip. An action that does not work yet is a `PrimaryButton` without handler: 45 % opacity, no
+  focus, no click, marked disabled for accessibility; no fake function. Settings has no primary action. Home keeps
+  the five file-type tiles below the card (order fixed).
 - **Icons:** Lucide (ISC), stroke 2 on the 24 grid, drawn at `icon` 20 and tinted with theme colours; path data
   local in `shell/FaiIcons.kt` with the ISC notice. No remote icon or icon font.
 
@@ -165,7 +171,11 @@ top tabs, and a tablet shows documents better with a side rail than with a phone
   `app/src/commonMain/kotlin/org/faioffice/app/theme/FaiTokens.kt` (generated, committed, do not edit) and prints the
   contrast summary. `--check` fails with the difference when the file is out of date; `ci/lint.sh` runs it.
 - The generated file is the only source of colour, type, spacing and radius in `app/`: no `Color(0x…)`, sp or dp
-  literal elsewhere (a lint rule follows in P2.5).
+  literal elsewhere. Gate: `ci/lint.sh` step `hardcode` scans `app/src/commonMain` outside `theme/` for
+  `Color(0x…)` / `Color(<number>…)`, named colours (`Color.Red` …) and bare `<number>.dp` / `.sp` / `Dp(<number>)`.
+  Allowed: `Color.Transparent`, `Color.Unspecified`, comments, and a line ending in `// hardcode-ok: <reason>`
+  (reviewed exception; today only the Lucide placeholder stroke). A new size goes to
+  `design/tokens/office.tokens.json` and is generated. The step first checks itself against planted violations.
 
 ## 9. Screenshots
 
@@ -173,6 +183,7 @@ top tabs, and a tablet shows documents better with a side rail than with a phone
 real-length TR / EN names) to `app/build/bakis/<theme>_<size>_tokens.png`, themes `acik` / `koyu`, sizes 390x844
 and 1920x950 (desktop JVM, `ImageComposeScene`). P2.7 extends this into the screen package.
 
-Shell shots (P2.5a, `ShellShotTest`): `app/build/bakis/<theme>_<size>_shell.png` at 390x844, 700x900, 1100x800 and
-1920x950 with Home selected, plus `<theme>_<size>_shell_pdf.png` (PDF selected) at 390x844 and 1920x950; light shots
-in Turkish, dark shots in English.
+Shell shots (`ShellShotTest`): every destination screen as `app/build/bakis/<theme>_<size>_<screen>.png` at 390x844
+and 1920x950 (screens `home`, `recent_files`, `documents`, `presentations`, `spreadsheets`, `pdf`, `file_converter`,
+`archive`, `settings`: 36 shots), plus `<theme>_<size>_shell.png` with Home at 700x900 and 1100x800; light shots in
+Turkish, dark shots in English. `ShellScreensTest` opens each destination and checks its title and disabled action.
