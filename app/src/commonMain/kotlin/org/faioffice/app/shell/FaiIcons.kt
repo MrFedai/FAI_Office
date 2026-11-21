@@ -48,7 +48,7 @@ private fun lucide(
                 addPath(
                     pathData = addPathNodes(path),
                     fill = null,
-                    stroke = SolidColor(Color.Black),
+                    stroke = SolidColor(Color.Black), // hardcode-ok: placeholder, FaiIcon tints it
                     strokeLineWidth = LUCIDE_STROKE,
                     strokeLineCap = StrokeCap.Round,
                     strokeLineJoin = StrokeJoin.Round,

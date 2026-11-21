@@ -214,6 +214,8 @@ object FaiSize {
     val icon = 20.dp
     val iconSmall = 16.dp
     val fileBadge = 36.dp
+    val emptyBadge = 56.dp
+    val iconLarge = 28.dp
     val dialogMax = 720.dp
     val border = 1.dp
 }
