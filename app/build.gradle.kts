@@ -65,6 +65,10 @@ compose.resources {
 compose.desktop {
     application {
         mainClass = "org.faioffice.app.MainKt"
+        // AppCDS (P2.8b, risk R7): the installed app dumps a class data sharing archive on its first start
+        // (CdsArchive.kt, from the class list in app/cds/common, written by ci/cds-classlist.sh) and maps it from
+        // the next start on. Missing, empty or stale archive: the JVM silently starts without it.
+        jvmArgs += listOf("-XX:SharedArchiveFile=\$APPDIR/resources/fai.jsa", "-Dfai.cds=\$APPDIR/resources/fai.jsa")
         // jpackage builds only for the OS it runs on: AppImage on Linux, MSI on Windows (CI windows job,
         // ci/windows.sh; WiX is fetched by the Compose plugin as a build tool and does not enter the package).
         nativeDistributions {
@@ -73,6 +77,9 @@ compose.desktop {
             packageVersion = "0.2.0"
             licenseFile.set(rootProject.file("LICENSE"))
             modules("java.instrument", "jdk.unsupported")
+            // Into <app>/resources: the class list, and empty fai.jsa / fai.jsa.stamp placeholders so the archive
+            // the app writes there belongs to the package (an MSI uninstall removes it; an update resets it).
+            appResourcesRootDir.set(layout.projectDirectory.dir("cds"))
             windows {
                 menuGroup = "FAI Office"
                 // Per-user install: no administrator rights; the same UUID lets a newer MSI replace an older one.

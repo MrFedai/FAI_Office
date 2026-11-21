@@ -17,6 +17,7 @@ fun main() =
             state = rememberWindowState(width = 1280.dp, height = 800.dp),
         ) {
             App()
+            CdsArchiveAfterFirstFrame()
             BudgetProbe()
         }
     }

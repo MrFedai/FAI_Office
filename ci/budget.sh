@@ -146,7 +146,7 @@ android_measure
 
 echo "== [5/5] desktop first frame and RAM at rest (Linux, Windows)"
 desktop_measure() {
-    local bin="$DESKTOP_DIST/fai-office/bin/fai-office" reason="" where counted=1 note="" i out ff pss
+    local bin="$DESKTOP_DIST/fai-office/bin/fai-office" reason="" where counted=1 note="" i out ff pss cds
     local frames=() psses=()
     if [ "$(uname -s)" != Linux ]; then
         reason="not a Linux machine"
@@ -168,6 +168,12 @@ desktop_measure() {
         row desktop_ram_mb "" "$where" "$counted" "$reason"
         return 0
     fi
+    # First start of a fresh build dumps the AppCDS archive (CdsArchive.kt) that every later start maps; like a
+    # user's first start after installing, it is not counted.
+    echo "   warm-up launch (not counted: first start dumps the AppCDS archive)"
+    FAI_BUDGET_PROBE=1 timeout 120 "$bin" >/dev/null 2>&1 || true
+    cds=$(stat -c%s "$(dirname "$bin")/../lib/app/resources/fai.jsa" 2>/dev/null || echo 0)
+    echo "   AppCDS archive: $(mb "$cds") MB (cache written by the first start, not in the package size)"
     for i in $(seq 1 "$RUNS"); do
         out=$(FAI_BUDGET_PROBE=$SETTLE timeout $((SETTLE + 60)) "$bin" 2>&1 || true)
         ff=$(sed -n 's/^fai_budget first_frame_ms //p' <<<"$out")
@@ -180,7 +186,7 @@ desktop_measure() {
     row desktop_cold_start_ms "$(
         IFS=,
         echo "${frames[*]}"
-    )" "$where" "$counted" "${note:-${#frames[@]} launches}"
+    )" "$where" "$counted" "${note:-${#frames[@]} launches, warm-up excluded}; AppCDS archive $(mb "$cds") MB"
     row desktop_ram_mb "$(
         IFS=,
         echo "${psses[*]}"
@@ -189,7 +195,7 @@ desktop_measure() {
 desktop_measure
 
 windows_measure() {
-    local inst="" exe reason="" where i ff ws priv frames=() wss=() privs=() key
+    local inst="" exe reason="" where i ff ws priv frames=() wss=() privs=() key cds
     if ! win_reachable; then
         reason="no Windows PC reachable (WSL interop)"
     elif ! inst=$(win_install_dir); then
@@ -207,8 +213,10 @@ windows_measure() {
     exe="$inst/$WIN_APP/$WIN_APP.exe"
     where="$(win_describe), native; CI image $(cat "$inst/BUILD.txt" 2>/dev/null || echo "of unknown build")"
     echo "   Windows: $where"
-    row windows_pkg_mb "$(mb "$(du -sb "$inst/$WIN_APP" | cut -f1)")" "$where" 1 ""
-    echo "   warm-up launch (not counted: first start after install, antivirus scan)"
+    # The AppCDS archive a start of this copy may already have written is a cache, not part of the package.
+    cds=$(stat -c%s "$inst/$WIN_APP/app/resources/fai.jsa" 2>/dev/null || echo 0)
+    row windows_pkg_mb "$(mb $(($(du -sb "$inst/$WIN_APP" | cut -f1) - cds)))" "$where" 1 ""
+    echo "   warm-up launch (not counted: first start after install, antivirus scan, AppCDS archive dump)"
     win_probe "$exe" "$SETTLE" >/dev/null
     for i in $(seq 1 "$RUNS"); do
         read -r ff ws priv <<<"$(win_probe "$exe" "$SETTLE")"
@@ -221,7 +229,9 @@ windows_measure() {
     row windows_cold_start_ms "$(
         IFS=,
         echo "${frames[*]}"
-    )" "$where" 1 "${#frames[@]} launches, warm-up excluded"
+    )" "$where" 1 "${#frames[@]} launches, warm-up excluded; AppCDS archive $(mb "$(
+        stat -c%s "$inst/$WIN_APP/app/resources/fai.jsa" 2>/dev/null || echo 0
+    )") MB"
     row windows_ram_mb "$(
         IFS=,
         echo "${wss[*]}"

@@ -6,16 +6,20 @@ package org.faioffice.app
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.system.exitProcess
 
 private const val MILLIS_PER_SECOND = 1000L
 private const val DEFAULT_HOLD_SECONDS = 30L
+private const val CDS_WAIT_MS = 60_000L
 
 /**
  * Budget measurement hook for ci/budget.sh (MASTER_SPEC section 7). Inert unless FAI_BUDGET_PROBE=<seconds> is set:
- * then it prints the time from process start to the second frame and waits <seconds> at rest. Where Linux /proc
+ * then it prints the time from process start to the second frame and waits <seconds> at rest (and for a running
+ * AppCDS dump, see CdsArchive). Where Linux /proc
  * exists it prints the process PSS and exits. Elsewhere (Windows) nothing in the JVM reads the working set, so it
  * prints `fai_budget at_rest pid <pid>` and stays open FAI_BUDGET_HOLD seconds (default 30) for the caller to read
  * the process memory from outside (ci/budget.sh: PowerShell Get-Process), then exits.
@@ -32,6 +36,9 @@ internal fun BudgetProbe() {
         val start = process.info().startInstant().map { it.toEpochMilli() }
         if (start.isPresent) probeLine("fai_budget first_frame_ms ${System.currentTimeMillis() - start.get()}")
         delay(settleSeconds * MILLIS_PER_SECOND)
+        // First start of an install: let the AppCDS dump (CdsArchive) finish before the caller reads memory and
+        // ends the process (taskkill on Windows), or the next start would still run without the archive.
+        withContext(Dispatchers.IO) { CdsArchive.awaitPending(CDS_WAIT_MS) }
         val pss = pssKb()
         if (pss != null) {
             probeLine("fai_budget pss_kb $pss")
