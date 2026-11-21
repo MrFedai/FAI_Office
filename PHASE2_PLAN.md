@@ -14,7 +14,7 @@ in its heading.
 * Every screen of section 10's navigation exists (empty states), in English and Turkish, light and dark.
 * `DESIGN.md` is written and approved by the owner.
 * Phase 2 budgets hold, measured, not estimated: Android base download, cold start and Home RAM on the Galaxy
-  A17 5G; Linux cold start and package size on a native Linux machine; Web initial load (section 7).
+  A55 5G (reference device, owner decision 2026-11-21); Linux cold start and package size on a native Linux machine; Web initial load (section 7).
 * R1 (shell memory on the reference phone) is closed as go, R7 (JVM start, native Linux) and R8 (Web build in
   CI) as go.
 
@@ -25,7 +25,8 @@ run. **Gate before P2.5:** the reference phone has arrived and R1 passes with th
 (`poc/compose-pdf`: Home ≤ 150 MB, PDF viewing ≤ 300 MB). If R1 fails, the shell choice is reopened before any
 screen is built.
 
-Owner actions: buy the Galaxy A17 5G 4 / 128 GB (needed for the P2.5 gate and P2.8); name a native Linux machine
+Owner actions: provide the reference phone, the Galaxy A55 5G (replaces the A17 5G, owner decision 2026-11-21;
+needed for the P2.5 gate and P2.8); name a native Linux machine
 for P2.8 (WSLg numbers do not count).
 
 ---
@@ -141,7 +142,7 @@ Done when: `ux.sh` produces the package for every P2.5 screen; a commit that cha
 Efor: high
 
 Scripts that measure and compare with section 7, writing one report per run: APK size; cold start to first frame
-(`am start -W`) and Home PSS (`dumpsys meminfo`) on the Galaxy A17 5G over adb; desktop first frame, installed
+(`am start -W`) and Home PSS (`dumpsys meminfo`) on the Galaxy A55 5G over adb; desktop first frame, installed
 size and RAM at rest on the native Linux machine; Web initial load (gzip). The desktop RAM budget gets its number
 from this measurement (owner approves).
 

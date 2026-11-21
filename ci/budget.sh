@@ -9,21 +9,21 @@
 # What is measured where:
 #   always             APK size, Web initial load (gzip), Linux package (createDistributable folder)
 #   adb device         Android cold start (`am start -W` TotalTime, median) and Home PSS (`dumpsys meminfo`);
-#                      the device model goes into the report, anything but a Galaxy A17 5G is marked as such.
+#                      the device model goes into the report, anything but a Galaxy A55 5G is marked as such.
 #                      The unsigned release APK is installed signed with the local debug key (~/.android); a device
 #                      holding a differently signed build needs BUDGET_INSTALL_APK=<signed.apk> or =none (measure
 #                      what is installed). Several devices: ANDROID_SERIAL picks one.
 #   Linux + display    desktop first frame and RAM at rest (FAI_BUDGET_PROBE hook in the desktop app); under WSL
 #                      (WSLg) it is reported but not counted: the budget is for a native Linux desktop.
 # Knobs: BUDGET_RUNS (timed runs, default 5), BUDGET_SETTLE_S (seconds at rest before RAM, default 5),
-#        BUDGET_REPORT_DIR (default reports/budget), BUDGET_REF_MODEL_RE (reference model, default SM-A176),
+#        BUDGET_REPORT_DIR (default reports/budget), BUDGET_REF_MODEL_RE (reference model, default SM-A556),
 #        ADB (adb binary, default from PATH).
 source "$(dirname "$0")/lib.sh"
 
 RUNS=${BUDGET_RUNS:-5}
 SETTLE=${BUDGET_SETTLE_S:-5}
 REPORT_DIR=${BUDGET_REPORT_DIR:-reports/budget}
-REF_MODEL_RE=${BUDGET_REF_MODEL_RE:-SM-A176} # Samsung Galaxy A17 5G (SM-A176B and its regional variants)
+REF_MODEL_RE=${BUDGET_REF_MODEL_RE:-SM-A556} # Samsung Galaxy A55 5G (SM-A556B/E and regional variants)
 PKG=org.faioffice
 ACTIVITY=$PKG/org.faioffice.android.MainActivity
 ADB=${ADB:-adb}
@@ -61,7 +61,7 @@ fi
 
 echo "== [4/5] Android on the reference phone (adb)"
 android_measure() {
-    local reason="" serial model where apk bt i out total wait state pss times=() psses=()
+    local reason="" serial model ram where apk bt i out total wait state pss times=() psses=()
     if ! command -v "$ADB" >/dev/null; then
         reason="no device (adb not found)"
     else
@@ -76,7 +76,8 @@ android_measure() {
     fi
     a() { "$ADB" -s "$serial" "$@" | tr -d '\r'; }
     model=$(a shell getprop ro.product.model)
-    where="$model, Android $(a shell getprop ro.build.version.release)"
+    ram=$(a shell cat /proc/meminfo 2>/dev/null | awk '/^MemTotal:/ { printf ", %.1f GB RAM", $2 / 1048576 }')
+    where="$model, Android $(a shell getprop ro.build.version.release)$ram"
     [[ $model =~ $REF_MODEL_RE ]] || where="$where (not the reference device)"
     echo "   device $serial: $where"
 

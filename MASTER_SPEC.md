@@ -25,8 +25,10 @@ Decided at the Phase 1 review (2026-11-18, `PHASE1_PROPOSAL.md`):
    document and cached; reduced scope only if it fails R3 on a mid-range laptop before R5.
 10. **Linux packaging:** Flatpak with the office engine as an extension, plus a full AppImage.
 
-11. **Reference device: Samsung Galaxy A17 5G, 4 GB RAM / 128 GB** (Exynos 1330), used for every Android
-    budget in section 7.
+11. **Reference device: Samsung Galaxy A55 5G** (SM-A556x, Exynos 1480), used for every Android budget in
+    section 7. Owner decision 2026-11-21, replacing the Galaxy A17 5G 4 GB chosen at the Phase 1 review (not
+    available); the RAM variant is recorded by the first measurement. Budgets passing on it no longer prove a
+    4 GB phone.
 12. **Minimum OS versions** (`PHASE1_PROPOSAL.md` section 13): Android `minSdk 29` (Android 10), `arm64-v8a`
     only; browsers Chrome / Edge 119, Firefox 120, Safari 18.2, cross-origin isolated; Linux Flatpak on the
     current freedesktop runtime and AppImage on glibc ≥ 2.35, `x86_64`.
@@ -220,7 +222,8 @@ Languages:
 Performance is designed in from the beginning and checked at the end of every phase. There is no separate
 "optimize later" phase.
 
-Reference device: Samsung Galaxy A17 5G, 4 GB RAM / 128 GB (Exynos 1330), chosen at the Phase 1 review.
+Reference device: Samsung Galaxy A55 5G (SM-A556x, Exynos 1480), owner decision 2026-11-21 (section 0 item 11);
+it replaces the Galaxy A17 5G 4 GB chosen at the Phase 1 review.
 
 The numbers below were measured in Phase 1 and approved at the Phase 1 review (2026-11-18); evidence in
 `PHASE1_PROPOSAL.md` section 8 and `poc/RESULTS.md`. A budget changes only with new measurements and owner approval.
