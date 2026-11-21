@@ -5,7 +5,8 @@
 # Runs the CI Windows build on this PC, from WSL (P2.10). Finds the newest CI run of `dev` that has the
 # fai-office-windows artifact (the `windows` job of .github/workflows/ci.yml), downloads it with gh, installs it into
 # %LOCALAPPDATA%\FAI_Office\ci-build (replacing the previous CI build there; nothing else is touched) and starts it.
-# An already installed run is not downloaded again. ci/budget.sh step 5 measures this copy.
+# An already installed run is not downloaded again. ci/budget.sh step 5 measures this copy. Its first start writes
+# the AppCDS archive (fai-office\\app\\resources\\fai.jsa, CdsArchive.kt) that later starts map; a reinstall drops it.
 #
 #   ci/windows-run.sh                        newest Windows build of dev
 #   BRANCH=task/7-x ci/windows-run.sh        newest Windows build of another branch (e.g. after workflow_dispatch)
