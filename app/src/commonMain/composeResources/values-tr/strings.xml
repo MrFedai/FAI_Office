@@ -16,4 +16,27 @@
     <string name="theme_system">Sistem</string>
     <string name="theme_light">Açık</string>
     <string name="theme_dark">Koyu</string>
+    <string name="nav_short_home">Ana sayfa</string>
+    <string name="nav_short_recent_files">Son</string>
+    <string name="nav_short_documents">Belgeler</string>
+    <string name="nav_short_presentations">Sunumlar</string>
+    <string name="nav_short_spreadsheets">Tablolar</string>
+    <string name="nav_short_pdf">PDF</string>
+    <string name="nav_short_file_converter">Dönüştür</string>
+    <string name="nav_short_archive">Arşiv</string>
+    <string name="nav_short_settings">Ayarlar</string>
+    <string name="description_home">Buradan başlayın: türüne göre dosya açın ya da son işinize dönün.</string>
+    <string name="description_recent_files">Son açtığınız dosyalar, en yenisi üstte.</string>
+    <string name="description_documents">Metin belgeleri yazın ve düzenleyin.</string>
+    <string name="description_presentations">Slayt sunumları hazırlayın ve sunun.</string>
+    <string name="description_spreadsheets">Tablolar, sayılar ve formüllerle çalışın.</string>
+    <string name="description_pdf">PDF dosyalarını görüntüleyin, üzerlerine not ekleyin.</string>
+    <string name="description_file_converter">Dosyaları bu cihazda bir biçimden diğerine dönüştürün.</string>
+    <string name="description_archive">Sıkıştırılmış arşivleri açın ve oluşturun.</string>
+    <string name="description_settings">Dil, tema ve uygulama tercihleri.</string>
+    <string name="status_in_development">Geliştiriliyor</string>
+    <string name="home_open_by_type">Türe göre aç</string>
+    <string name="theme_toggle">Tema: %1$s</string>
+    <string name="nav_collapse">Gezinmeyi daralt</string>
+    <string name="nav_expand">Gezinmeyi genişlet</string>
 </resources>

@@ -3,38 +3,37 @@
 
 package org.faioffice.app
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import org.faioffice.app.i18n.AppLanguage
 import org.faioffice.app.i18n.AppLanguageProvider
-import org.faioffice.app.resources.Res
-import org.faioffice.app.resources.app_name
+import org.faioffice.app.shell.Shell
+import org.faioffice.app.shell.ShellNavigator
+import org.faioffice.app.shell.ShellTheme
+import org.faioffice.app.shell.rememberShellNavigator
 import org.faioffice.app.theme.FaiTheme
 import org.faioffice.app.theme.ThemeMode
-import org.jetbrains.compose.resources.stringResource
 
 /**
- * Root of the shell on every platform. Placeholder until navigation (P2.5); the theme and the language follow the
- * system unless overridden.
+ * Root of the shell on every platform. [themeMode] and [language] are the starting values (default: follow the
+ * system); the top bar theme button changes the theme. [navigator] is created by the caller when the platform wires
+ * its own back (Android); it lives above the language provider so a language switch keeps the destination.
+ * [touch] marks a touch-first window (Android, coarse-pointer Web): short touch windows use the phone layout.
  */
 @Composable
 fun App(
     themeMode: ThemeMode = ThemeMode.System,
     language: AppLanguage = AppLanguage.System,
+    navigator: ShellNavigator = rememberShellNavigator(),
+    touch: Boolean = false,
 ) {
+    var mode by remember { mutableStateOf(themeMode) }
     AppLanguageProvider(language) {
-        FaiTheme(themeMode) {
-            Box(Modifier.fillMaxSize().background(FaiTheme.colors.bg), contentAlignment = Alignment.Center) {
-                BasicText(
-                    stringResource(Res.string.app_name),
-                    style = FaiTheme.type.pageTitle.copy(color = FaiTheme.colors.text),
-                )
-            }
+        FaiTheme(mode) {
+            Shell(navigator, ShellTheme(mode) { mode = it }, touch)
         }
     }
 }

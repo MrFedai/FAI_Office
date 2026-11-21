@@ -16,4 +16,27 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="nav_short_home">Home</string>
+    <string name="nav_short_recent_files">Recent</string>
+    <string name="nav_short_documents">Documents</string>
+    <string name="nav_short_presentations">Slides</string>
+    <string name="nav_short_spreadsheets">Sheets</string>
+    <string name="nav_short_pdf">PDF</string>
+    <string name="nav_short_file_converter">Converter</string>
+    <string name="nav_short_archive">Archive</string>
+    <string name="nav_short_settings">Settings</string>
+    <string name="description_home">Start here: open a file by type or continue recent work.</string>
+    <string name="description_recent_files">Files you opened lately, newest first.</string>
+    <string name="description_documents">Write and edit text documents.</string>
+    <string name="description_presentations">Prepare and present slide decks.</string>
+    <string name="description_spreadsheets">Work with tables, numbers and formulas.</string>
+    <string name="description_pdf">View PDF files and add notes to them.</string>
+    <string name="description_file_converter">Convert files from one format to another on this device.</string>
+    <string name="description_archive">Open and create compressed archives.</string>
+    <string name="description_settings">Language, theme and app preferences.</string>
+    <string name="status_in_development">In development</string>
+    <string name="home_open_by_type">Open by file type</string>
+    <string name="theme_toggle">Theme: %1$s</string>
+    <string name="nav_collapse">Collapse navigation</string>
+    <string name="nav_expand">Expand navigation</string>
 </resources>
