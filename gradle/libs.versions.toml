@@ -7,6 +7,9 @@ androidx-activity = "1.12.4"
 android-compileSdk = "37"
 android-targetSdk = "36"
 android-minSdk = "29"
+# Same version Compose Multiplatform already brings to the app (no new shipped artifact); core uses it for
+# suspend file access, cancellation and Dispatchers.IO. Apache-2.0.
+kotlinx-coroutines = "1.9.0"
 # Build-time only tools (lint, license check); not shipped.
 ktlint-gradle = "14.2.0"
 ktlint-cli = "1.8.0"
@@ -18,6 +21,8 @@ compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", v
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 [plugins]
