@@ -148,7 +148,7 @@ fun PrimaryButton(
 }
 
 /**
- * Square icon button:[touchTarget] size (44 on touch, 36 desktop control), hover tint, focus ring and an
+ * Square icon button: [touchTarget] size (44 on touch, 36 desktop control), hover tint, focus ring and an
  * accessible [label]. [selected] fills it with primarySoft (Settings shown in the top bar).
  */
 @Composable
