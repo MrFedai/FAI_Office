@@ -63,7 +63,8 @@ fun sizeText(bytes: Long?): String? {
             value.toLong().toString()
         } else {
             val tenths = (value * TEN).toLong()
-            "${tenths / TEN}${if (comma) ',' else '.'}${tenths % TEN}"
+            // "96 KB", never "96.0 KB": a zero tenth adds nothing to read.
+            if (tenths % TEN == 0L) "${tenths / TEN}" else "${tenths / TEN}${if (comma) ',' else '.'}${tenths % TEN}"
         }
     return stringResource(units[unit], number)
 }
