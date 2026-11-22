@@ -131,6 +131,43 @@ class LibraryStore(
         }
 
     /**
+     * Writes the budget seed ([LibrarySeed]): the library becomes [recents] and [folders], but only when it is empty
+     * or holds nothing but an earlier seed (every reference [isSeed]) with "Remember recent files" on. Anything of
+     * the user's (or an unreadable store) is left alone: [SeedResult.Outcome.Refused]. The same seed already there
+     * is not written again ([SeedResult.Outcome.AlreadySeeded]), so launches after the seeding one only read.
+     */
+    suspend fun seed(
+        recents: List<RecentEntry>,
+        folders: List<LibraryFolder>,
+        isSeed: (FileRef) -> Boolean,
+    ): SeedResult =
+        mutex.withLock {
+            load()
+            val current = data
+            val own = current.recents.any { !isSeed(it.ref) } || current.folders.any { !isSeed(it.ref) }
+            val outcome =
+                when {
+                    !loaded || own || !current.rememberRecent -> {
+                        SeedResult.Outcome.Refused
+                    }
+
+                    current.recents.map { it.ref } == recents.map { it.ref } &&
+                        current.folders.map { it.ref } == folders.map { it.ref } -> {
+                        SeedResult.Outcome.AlreadySeeded
+                    }
+
+                    mutate(LibraryData(rememberRecent = true, recents = recents, folders = folders)) -> {
+                        SeedResult.Outcome.Seeded
+                    }
+
+                    else -> {
+                        SeedResult.Outcome.NotSaved
+                    }
+                }
+            SeedResult(outcome, data.recents.size, data.folders.size)
+        }
+
+    /**
      * State of [ref] now, from [FileAccess.info]: found is [EntryState.Available], [FileError.NotFound] and a wrong
      * kind or I/O error are [EntryState.Missing], [FileError.PermissionLost] is [EntryState.PermissionLost]; a locked,
      * read-only or full medium does not make a file that exists unavailable.
