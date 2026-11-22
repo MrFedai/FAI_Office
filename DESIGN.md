@@ -3,7 +3,7 @@
 Extends the shared design base `claude-ortak/tasarim/TEMEL.md` (kit v1.0, tokens 1.1.0). Only the differences and
 the office-specific parts are written here; everything else follows TEMEL. Where the two disagree, this file wins.
 Status: approved by the owner (P2.4, 2026-11-18). File screen patterns (section 6, "File screens", P3.8,
-2026-11-22): proposal, awaiting the owner's approval.
+2026-11-22): approved by the owner (2026-11-22).
 
 ## 1. Identity
 
@@ -225,7 +225,7 @@ No files: Recent Files and the five family screens show their empty state with t
 add "Add folder" where folders exist); File Converter keeps its disabled action and chip. Web: no folders (Settings
 says so, no "Add folder"), recent files last for the tab, no "Open in another app".
 
-**Differences from TEMEL, for owner approval:** long file lists (up to 100 recent files plus the pinned ones, a
+**Differences from TEMEL (approved by the owner, 2026-11-22):** long file lists (up to 100 recent files plus the pinned ones, a
 folder's files) scroll with the page on desktop instead of paging (TEMEL 5 order ① columns ② paging): a file list is
 natural list content and keyboard Up / Down follow it; the sort and filter controls scroll with it. Removing a recent
 file or clearing the list has no undo toast yet (TEMEL 6); left as a follow-up.
