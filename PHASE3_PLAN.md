@@ -405,7 +405,7 @@ desktop lists scroll with the page; no undo toast yet). `FileShotTest` 128 shots
 1920x950), `FileListKeyboardTest`, `FilesModelTest`, `FileTextTest`; `ci/ux-cekim.sh` runs `FileShotTest` too.
 Not done: browser test that a file picked in Chromium reaches the information page (no browser driver in the repo).
 
-### P3.9 Phase 3 close
+### P3.9 Phase 3 close — YAPILDI (dev a94ab86)
 
 Efor: medium
 
@@ -418,3 +418,10 @@ row 3 updated (Windows instead of Linux, Web file access in Phase 10), status no
 Done when: every section 7 budget measured in Phase 2 still holds on the named devices; the owner approves Phase 3.
 
 Depends on: P3.1–P3.8; the A55 and the Windows PC.
+
+Result: budget run with a seeded library (`LibrarySeed`: 100 recent files, 2 added folders; Android
+`--ez org.faioffice.extra.BUDGET_SEED true`, desktop `FAI_BUDGET_SEED=<folder>`, never over a library of the user's),
+report `reports/budget/2026-11-22_1000_f1ee523.md`: Galaxy A55 5G cold start 318 ms (Phase 2: 273) and Home RAM
+54.4 MB (51.9); APK 1.86 MB; Web initial load 4.17 MB gzip; Windows package 111.6 MB, first frame 1318 ms (937),
+RAM at rest 245 MB (233). Every section 7 budget holds. `PHASE1_PROPOSAL.md` section 12 rows 3 and 10 updated,
+v0.3.0 and `CHANGELOG.md`; screen package refreshed. Phase 3 approved by the owner on 2026-11-22.
