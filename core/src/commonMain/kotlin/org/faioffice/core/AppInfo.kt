@@ -6,5 +6,5 @@ package org.faioffice.core
 /** Product identity shown in the shell; the one place the name and version are defined. */
 object AppInfo {
     const val NAME = "FAI Office"
-    const val VERSION = "0.2.0"
+    const val VERSION = "0.3.0"
 }

@@ -83,7 +83,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.AppImage, TargetFormat.Msi)
             packageName = "fai-office"
-            packageVersion = "0.2.0"
+            packageVersion = "0.3.0"
             licenseFile.set(rootProject.file("LICENSE"))
             modules("java.instrument", "jdk.unsupported")
             // Into <app>/resources: the class list, and empty fai.jsa / fai.jsa.stamp placeholders so the archive
