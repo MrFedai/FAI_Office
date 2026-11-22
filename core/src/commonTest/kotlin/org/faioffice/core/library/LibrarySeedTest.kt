@@ -17,7 +17,12 @@ class LibrarySeedTest {
     private val fake = InMemoryFileAccess()
 
     private fun store() =
-        LibraryStore(fake, SafeSave(fake, fake.addFolder("/uygulama/kayıt")), fake.ref("/uygulama/k.txt"), fake.ref("/uygulama/k.bad")) {
+        LibraryStore(
+            fake,
+            SafeSave(fake, fake.addFolder("/uygulama/kayıt")),
+            fake.ref("/uygulama/k.txt"),
+            fake.ref("/uygulama/k.bad"),
+        ) {
             NOW
         }
 
@@ -83,7 +88,13 @@ class LibrarySeedTest {
             assertEquals(SeedResult.Outcome.Refused, store().seed(seedRecents, seedFolders, ::isSeed).outcome)
 
             val fresh = InMemoryFileAccess()
-            val off = LibraryStore(fresh, SafeSave(fresh, fresh.addFolder("/j")), fresh.ref("/s.txt"), fresh.ref("/s.bad")) { NOW }
+            val off =
+                LibraryStore(
+                    fresh,
+                    SafeSave(fresh, fresh.addFolder("/j")),
+                    fresh.ref("/s.txt"),
+                    fresh.ref("/s.bad"),
+                ) { NOW }
             off.setRememberRecent(false)
             assertEquals(SeedResult(SeedResult.Outcome.Refused, 0, 0), off.seed(seedRecents, seedFolders) { true })
             assertTrue(off.recents().isEmpty())

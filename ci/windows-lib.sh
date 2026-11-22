@@ -37,18 +37,25 @@ win_running_from() {
         Where-Object { \$_.Path -like '$(wslpath -w "$1")*' } | ForEach-Object { \$_.Id }"
 }
 
-# win_probe <exe (WSL path)> <settle s>
+# win_probe <exe (WSL path)> <settle s> [seed folder (WSL path)]
 # One launch with the FAI_BUDGET_PROBE hook (app/src/desktopMain/.../BudgetProbe.kt). Prints
-# "<first frame ms> <working set bytes> <private bytes>" ("?" for a missing value). Memory is read from outside
+# "<first frame ms> <working set bytes> <private bytes> <seed recent> <seed folders> <seed outcome>" ("?" for a
+# missing value). With a seed folder the app runs on the seeded library kept there (FAI_BUDGET_SEED,
+# DesktopBudgetSeed.kt): the first launch on an empty folder writes it, later ones read it. Memory is read from outside
 # with Get-Process once the app reports it is at rest: WorkingSet64 (resident pages including shared ones, like
 # Linux RSS, not PSS) and PrivateMemorySize64 (committed private memory). The app is then ended with taskkill.
 win_probe() {
-    local exe=$1 settle=$2 dir out line pid="" ff="" mem="" launcher t=0
+    local exe=$1 settle=$2 seed_dir=${3:-} dir out line pid="" ff="" mem="" seed="" launcher t=0 seed_win=""
     dir=$(dirname "$exe")
     out="$dir/probe.txt"
     rm -f "$out"
-    (cd "$dir" && FAI_BUDGET_PROBE=$settle FAI_BUDGET_OUT="$(wslpath -w "$out")" \
-        WSLENV="${WSLENV:+$WSLENV:}FAI_BUDGET_PROBE:FAI_BUDGET_OUT" "./$(basename "$exe")" >/dev/null 2>&1) &
+    if [ -n "$seed_dir" ]; then
+        mkdir -p "$seed_dir"
+        seed_win=$(wslpath -w "$seed_dir")
+    fi
+    (cd "$dir" && FAI_BUDGET_PROBE=$settle FAI_BUDGET_OUT="$(wslpath -w "$out")" FAI_BUDGET_SEED="$seed_win" \
+        WSLENV="${WSLENV:+$WSLENV:}FAI_BUDGET_PROBE:FAI_BUDGET_OUT:FAI_BUDGET_SEED" "./$(basename "$exe")" \
+        >/dev/null 2>&1) &
     launcher=$!
     while [ $t -lt $((settle + 90)) ]; do
         sleep 1
@@ -56,6 +63,7 @@ win_probe() {
         [ -f "$out" ] || continue
         line=$(tr -d '\r' <"$out")
         ff=$(sed -n 's/^fai_budget first_frame_ms //p' <<<"$line")
+        seed=$(sed -n 's/^fai_budget seed //p' <<<"$line")
         pid=$(sed -n 's/^fai_budget at_rest pid //p' <<<"$line")
         [ -z "$pid" ] || break
     done
@@ -68,5 +76,5 @@ win_probe() {
     fi
     wait "$launcher" 2>/dev/null || true
     rm -f "$out"
-    echo "${ff:-?} ${mem:-? ?}"
+    echo "${ff:-?} ${mem:-? ?} ${seed:-? ? ?}"
 }

@@ -6,6 +6,8 @@ package org.faioffice.app.files
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.runBlocking
+import org.faioffice.app.probeLine
 import org.faioffice.core.files.DesktopFileAccess
 import org.faioffice.core.files.FileRef
 import org.faioffice.core.files.NoPersistedGrants
@@ -346,8 +348,9 @@ class DesktopFiles private constructor(
         ): DesktopFiles? {
             val started = TimeSource.Monotonic.markNow()
             val os = DesktopOs.current
+            val seed = DesktopBudgetSeed.folder(System::getenv)
             val dirs =
-                DesktopDirs.of(
+                seed?.let(DesktopBudgetSeed::dirs) ?: DesktopDirs.of(
                     os,
                     System::getenv,
                     System.getProperty("user.home").orEmpty(),
@@ -385,6 +388,12 @@ class DesktopFiles private constructor(
                 }
             }
             val files = DesktopFiles(dirs, os, log)
+            if (seed != null) {
+                // Before the window: Home then reads the seeded library (ci/budget.sh, DesktopBudgetSeed).
+                probeLine(
+                    runBlocking { DesktopBudgetSeed.apply(files.library.store, seed, System.currentTimeMillis()) }.line,
+                )
+            }
             files.server = (role as? SingleInstance.Role.Primary)?.server
             ready.complete(files)
             files.receive(paths, "command line")

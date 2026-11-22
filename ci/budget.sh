@@ -18,6 +18,16 @@
 #   Windows PC (WSL)   installed size, first frame and RAM at rest of the CI Windows image that ci/windows-run.sh
 #                      installed (%LOCALAPPDATA%\FAI_Office\ci-build, or WIN_INSTALL_DIR); RAM is the process working
 #                      set read with PowerShell Get-Process (no /proc on Windows). No image: "not measured".
+# Seeded library (PHASE3_PLAN P3.9): Android and both desktops measure Home with 100 recent files and 2 added
+# folders, written by the app itself on an explicit trigger and never over a library of the user's:
+#   Android   one launch with `--ez org.faioffice.extra.BUDGET_SEED true` before the warm-up; the app writes the seed
+#             into its library only when that is empty (or an earlier seed) and logs `fai_budget seed ...` (logcat
+#             FaiFiles). A device whose library holds the user's files is measured as it is, the note says so;
+#             BUDGET_ANDROID_CLEAR=1 clears the app's data first (`pm clear`, deletes that library).
+#   desktop   FAI_BUDGET_SEED=<folder> on every launch: the app keeps its library in that folder (never the user's
+#             app data folder) with real seeded files; build/ci/budget-seed (Linux) and <image>\budget-seed
+#             (Windows) are emptied before the warm-up, which writes the seed; the timed launches only read it.
+# The report notes say "seeded 100+2" (or what the library held instead).
 # Knobs: BUDGET_RUNS (timed runs, default 5), BUDGET_SETTLE_S (seconds at rest before RAM, default 5),
 #        BUDGET_REPORT_DIR (default reports/budget), BUDGET_REF_MODEL_RE (reference model, default SM-A556),
 #        ADB (adb binary, default from PATH).
@@ -36,6 +46,17 @@ M="$LOG_DIR/budget-measurements.tsv"
 
 # row <key> <value or comma-separated runs> <device / environment> <counted 1|0> <note>
 row() { printf '%s\t%s\t%s\t%s\t%s\n' "$@" >>"$M"; }
+# seed_note "<recent> <folders> <outcome>": the report note for a `fai_budget seed` line (empty: no line seen).
+seed_note() {
+    local r f o
+    read -r r f o <<<"$1"
+    case "$o" in
+    seeded | alreadyseeded) echo "seeded $r+$f" ;;
+    refused) echo "not seeded: the library held $r recent, $f folders of its own" ;;
+    notsaved) echo "seed not saved ($r+$f in memory only)" ;;
+    *) echo "seed not confirmed (no fai_budget seed line)" ;;
+    esac
+}
 mb() { awk -v b="$1" 'BEGIN { printf "%.3f", b / 1048576 }'; }
 median() { tr ' ' '\n' | sort -n | awk '{ a[NR] = $1 } END { print (NR % 2) ? a[(NR + 1) / 2] : (a[NR / 2] + a[NR / 2 + 1]) / 2 }'; }
 
@@ -65,7 +86,7 @@ fi
 
 echo "== [4/5] Android on the reference phone (adb)"
 android_measure() {
-    local reason="" serial model ram where apk bt i out total wait state pss times=() psses=()
+    local reason="" serial model ram where apk bt i out total wait state pss seed seeded times=() psses=()
     if ! command -v "$ADB" >/dev/null; then
         reason="no device (adb not found)"
     else
@@ -113,6 +134,22 @@ android_measure() {
         return 0
     fi
 
+    if [ "${BUDGET_ANDROID_CLEAR:-0}" = 1 ]; then
+        echo "   BUDGET_ANDROID_CLEAR=1: clearing the app's data (library included)"
+        a shell pm clear "$PKG" >/dev/null
+    fi
+    echo "   seeding the library (100 recent files, 2 folders) with one launch"
+    a shell am force-stop "$PKG"
+    a logcat -c
+    a shell am start -W -n "$ACTIVITY" --ez org.faioffice.extra.BUDGET_SEED true >/dev/null
+    seed=""
+    for i in $(seq 1 15); do
+        seed=$(a logcat -d -s FaiFiles:I | sed -n 's/.*fai_budget seed //p' | tail -1)
+        [ -n "$seed" ] && break
+        sleep 1
+    done
+    seeded=$(seed_note "$seed")
+    echo "   seed: ${seed:-no answer} -> $seeded"
     echo "   warm-up launch after install (not counted)"
     a shell am force-stop "$PKG"
     a shell am start -W -n "$ACTIVITY" >/dev/null
@@ -136,17 +173,18 @@ android_measure() {
     row android_cold_start_ms "$(
         IFS=,
         echo "${times[*]}"
-    )" "$where" 1 "${#times[@]} cold launches after force-stop, warm-up excluded"
+    )" "$where" 1 "${#times[@]} cold launches after force-stop, warm-up excluded; $seeded"
     row android_home_pss_mb "$(
         IFS=,
         echo "${psses[*]}"
-    )" "$where" 1 "Home after ${SETTLE} s"
+    )" "$where" 1 "Home after ${SETTLE} s; $seeded"
 }
 android_measure
 
 echo "== [5/5] desktop first frame and RAM at rest (Linux, Windows)"
 desktop_measure() {
-    local bin="$DESKTOP_DIST/fai-office/bin/fai-office" reason="" where counted=1 note="" i out ff pss cds
+    local bin="$DESKTOP_DIST/fai-office/bin/fai-office" reason="" where counted=1 note="" i out ff pss cds seeded
+    local seed_dir="$LOG_DIR/budget-seed"
     local frames=() psses=()
     if [ "$(uname -s)" != Linux ]; then
         reason="not a Linux machine"
@@ -170,12 +208,15 @@ desktop_measure() {
     fi
     # First start of a fresh build dumps the AppCDS archive (CdsArchive.kt) that every later start maps; like a
     # user's first start after installing, it is not counted.
-    echo "   warm-up launch (not counted: first start dumps the AppCDS archive)"
-    FAI_BUDGET_PROBE=1 timeout 120 "$bin" >/dev/null 2>&1 || true
+    echo "   warm-up launch (not counted: first start dumps the AppCDS archive, writes the seed in $seed_dir)"
+    rm -rf "$seed_dir"
+    out=$(FAI_BUDGET_SEED="$seed_dir" FAI_BUDGET_PROBE=1 timeout 120 "$bin" 2>&1 || true)
+    seeded=$(seed_note "$(sed -n 's/^fai_budget seed //p' <<<"$out" | tail -1)")
+    echo "   seed: $seeded"
     cds=$(stat -c%s "$(dirname "$bin")/../lib/app/resources/fai.jsa" 2>/dev/null || echo 0)
     echo "   AppCDS archive: $(mb "$cds") MB (cache written by the first start, not in the package size)"
     for i in $(seq 1 "$RUNS"); do
-        out=$(FAI_BUDGET_PROBE=$SETTLE timeout $((SETTLE + 60)) "$bin" 2>&1 || true)
+        out=$(FAI_BUDGET_SEED="$seed_dir" FAI_BUDGET_PROBE=$SETTLE timeout $((SETTLE + 60)) "$bin" 2>&1 || true)
         ff=$(sed -n 's/^fai_budget first_frame_ms //p' <<<"$out")
         pss=$(sed -n 's/^fai_budget pss_kb //p' <<<"$out")
         printf '   run %d/%d: first frame %s ms, PSS after %s s: %s KB\n' "$i" "$RUNS" "${ff:-?}" "$SETTLE" "${pss:-?}"
@@ -186,16 +227,16 @@ desktop_measure() {
     row desktop_cold_start_ms "$(
         IFS=,
         echo "${frames[*]}"
-    )" "$where" "$counted" "${note:-${#frames[@]} launches, warm-up excluded}; AppCDS archive $(mb "$cds") MB"
+    )" "$where" "$counted" "${note:-${#frames[@]} launches, warm-up excluded}; AppCDS archive $(mb "$cds") MB; $seeded"
     row desktop_ram_mb "$(
         IFS=,
         echo "${psses[*]}"
-    )" "$where" "$counted" "${note:-at rest after ${SETTLE} s}"
+    )" "$where" "$counted" "${note:-at rest after ${SETTLE} s}; $seeded"
 }
 desktop_measure
 
 windows_measure() {
-    local inst="" exe reason="" where i ff ws priv frames=() wss=() privs=() key cds
+    local inst="" exe reason="" where i ff ws priv seed seeded frames=() wss=() privs=() key cds
     if ! win_reachable; then
         reason="no Windows PC reachable (WSL interop)"
     elif ! inst=$(win_install_dir); then
@@ -217,9 +258,12 @@ windows_measure() {
     cds=$(stat -c%s "$inst/$WIN_APP/app/resources/fai.jsa" 2>/dev/null || echo 0)
     row windows_pkg_mb "$(mb $(($(du -sb "$inst/$WIN_APP" | cut -f1) - cds)))" "$where" 1 ""
     echo "   warm-up launch (not counted: first start after install, antivirus scan, AppCDS archive dump)"
-    win_probe "$exe" "$SETTLE" >/dev/null
+    rm -rf "$inst/budget-seed"
+    read -r ff ws priv seed <<<"$(win_probe "$exe" "$SETTLE" "$inst/budget-seed")"
+    seeded=$(seed_note "${seed//\?/}")
+    echo "   seed in $inst/budget-seed: $seeded"
     for i in $(seq 1 "$RUNS"); do
-        read -r ff ws priv <<<"$(win_probe "$exe" "$SETTLE")"
+        read -r ff ws priv seed <<<"$(win_probe "$exe" "$SETTLE" "$inst/budget-seed")"
         printf '   run %d/%d: first frame %s ms, working set after %s s: %s bytes, private bytes %s\n' "$i" "$RUNS" \
             "$ff" "$SETTLE" "$ws" "$priv"
         [ "$ff" = "?" ] || frames+=("$ff")
@@ -231,13 +275,13 @@ windows_measure() {
         echo "${frames[*]}"
     )" "$where" 1 "${#frames[@]} launches, warm-up excluded; AppCDS archive $(mb "$(
         stat -c%s "$inst/$WIN_APP/app/resources/fai.jsa" 2>/dev/null || echo 0
-    )") MB"
+    )") MB; $seeded"
     row windows_ram_mb "$(
         IFS=,
         echo "${wss[*]}"
     )" "$where" 1 "at rest after ${SETTLE} s; private bytes median $(
         [ ${#privs[@]} -gt 0 ] && printf '%s\n' "${privs[@]}" | median | xargs printf '%.1f' || echo "?"
-    ) MB"
+    ) MB; $seeded"
 }
 windows_measure
 

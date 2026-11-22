@@ -89,10 +89,14 @@ class AndroidFiles private constructor(
      * go to the hub; the launcher intent and one restored from recents open nothing. [EXTRA_MEASURE_FOLDERS] lists
      * every library folder once and logs the times: `adb shell am start -n
      * org.faioffice/org.faioffice.android.MainActivity --ez org.faioffice.extra.MEASURE_FOLDERS true`.
+     * [EXTRA_BUDGET_SEED] writes the budget seed ([AndroidBudgetSeed]) and logs its `fai_budget seed` line.
      */
     fun onIntent(intent: Intent?) {
         if (intent == null || (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) return
         if (intent.getBooleanExtra(EXTRA_MEASURE_FOLDERS, false)) scope.launch { hub.measureFolders() }
+        if (intent.getBooleanExtra(EXTRA_BUDGET_SEED, false)) {
+            scope.launch { Log.i(LOG_TAG, AndroidBudgetSeed.apply(library.store, System.currentTimeMillis()).line) }
+        }
         val incoming = IncomingFiles.of(intent.action, urisOf(intent)) ?: return
         Log.i(LOG_TAG, "incoming ${incoming.origin.name}: ${incoming.refs.size} file(s)")
         hub.open(incoming.refs, incoming.origin)
@@ -153,6 +157,13 @@ class AndroidFiles private constructor(
 
         /** Boolean extra: list every library folder once and log the times (`am start ... --ez <this> true`). */
         const val EXTRA_MEASURE_FOLDERS = "org.faioffice.extra.MEASURE_FOLDERS"
+
+        /**
+         * Boolean extra: write the budget seed (100 recent files, 2 folders; ci/budget.sh) into an empty library and
+         * log `fai_budget seed <recent> <folders> <outcome>`. The activity is exported, so any app could send it; the
+         * most it can do is fill an empty library with entries that open nothing (removable from Home and Settings).
+         */
+        const val EXTRA_BUDGET_SEED = "org.faioffice.extra.BUDGET_SEED"
 
         private const val OCTET_STREAM = "application/octet-stream"
 

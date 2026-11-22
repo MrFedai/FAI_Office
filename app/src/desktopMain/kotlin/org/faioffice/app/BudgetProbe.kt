@@ -24,7 +24,7 @@ private const val CDS_WAIT_MS = 60_000L
  * prints `fai_budget at_rest pid <pid>` and stays open FAI_BUDGET_HOLD seconds (default 30) for the caller to read
  * the process memory from outside (ci/budget.sh: PowerShell Get-Process), then exits.
  * FAI_BUDGET_OUT=<file> also appends every line to that file: a Windows GUI launcher started from WSL may have no
- * usable stdout.
+ * usable stdout. FAI_BUDGET_SEED=<folder> measures with the seeded library (DesktopBudgetSeed), whose line comes first.
  */
 @Composable
 internal fun BudgetProbe() {
@@ -50,7 +50,8 @@ internal fun BudgetProbe() {
     }
 }
 
-private fun probeLine(line: String) {
+/** Prints a `fai_budget` line for ci/budget.sh: stdout, and FAI_BUDGET_OUT when set. */
+internal fun probeLine(line: String) {
     println(line)
     System.getenv("FAI_BUDGET_OUT")?.let { File(it).appendText(line + "\n") }
 }

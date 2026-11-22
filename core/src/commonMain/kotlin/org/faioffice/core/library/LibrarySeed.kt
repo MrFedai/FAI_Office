@@ -57,7 +57,14 @@ object LibrarySeed {
                 name = name,
                 format = format,
                 size = MIN_SIZE + (i.toLong() * SIZE_PRIME) % SIZE_SPREAD,
-                folder = if (slot < FIRST_FOLDER_SLOTS) 0 else if (slot < SECOND_FOLDER_SLOTS) 1 else null,
+                folder =
+                    if (slot < FIRST_FOLDER_SLOTS) {
+                        0
+                    } else if (slot < SECOND_FOLDER_SLOTS) {
+                        1
+                    } else {
+                        null
+                    },
                 missing = slot == MISSING_SLOT,
                 pinned = i in PINNED,
             )
