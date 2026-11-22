@@ -309,14 +309,14 @@ always-available offline build. Not measured; to be validated in Phase 2 CI.
 |---|---|---|---|
 | 1 | Architecture, PoCs, license audit, budgets (this document) | — | — |
 | 2 | Compose shell, navigation, design system (`DESIGN.md`), i18n EN/TR; CI for Android + Linux, Web build of the core; budget tests on the reference phone | 1 approved; reference phone | — |
-| 3 | File management (SAF / content URIs, desktop files, browser File System Access), format detection, recent files, safe-save layer | 2 | — |
+| 3 | File management: one file access API with Android (SAF / content URIs only) and Windows desktop files (Linux uses the desktop implementation), a minimal Web file input; format detection, recent files and added folders, safe-save layer, file screens. Full browser File System Access moved to Phase 10 (owner, 2026-11-21; `PHASE3_PLAN.md`) | 2 | — |
 | 4 | PDF module: viewing, search, selection, annotations, forms, page ops, merge/split, print | 2, 3 | — |
 | 5 | Viewer and Archive modules (libarchive PoC + audit first) | 2, 3 | — |
 | 6 | Office engine integration: engine process + IPC on Android and Linux, module delivery (Play feature module, Flatpak extension), Level 1 viewing of all office formats, conversion; fidelity corpus and CI | 3; LibreOffice build pipeline from `poc/` | **R1** (Android, Linux) |
 | 7 | Writer editing (Level 2) | 6 | **R2** |
 | 8 | Sheets editing (Level 2) | 6 | **R3** |
 | 9 | Slides editing, presentation mode | 6 | **R4** |
-| 10 | Web version: Kotlin/Wasm shell, PDFium WASM, trimmed office engine WASM (scope per R3, section 10) | 2–6 | **R5** |
+| 10 | Web version: Kotlin/Wasm shell, full browser File System Access (from Phase 3), PDFium WASM, trimmed office engine WASM (scope per R3, section 10) | 2–6 | **R5** |
 | 11 | Windows, iOS, macOS adaptation | 2–9 | **R6** |
 
 Phases 4 and 5 can run in parallel after 3. Nothing from Phase 7 onward may delay R1.
