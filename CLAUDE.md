@@ -8,7 +8,7 @@ Burada yalnız bu projenin farkı. Kabuk: Compose Multiplatform (Faz 2, `PHASE2_
 **Tek uygulama:** Writer, Sheets, Slides, PDF ayrı uygulama olmaz; ağır Office motoru ayrı modül, gerektiğinde yüklenir.
 **Lisans:** AGPL, yalnız-GPL ve özgür olmayan bağımlılık eklenmez (`MASTER_SPEC.md` bölüm 11).
 **Bulut yok:** hesap, reklam, abonelik, ücretli servis, sunucuda belge işleme yok.
-**Faz 1 onaylandı (18.11.2026), Faz 2 onaylandı (21.11.2026, v0.2.0);** ürün kodu `app/`, `core/`, `androidApp/`; `poc/` yalnız referans, ürün yapısına girmez.
+**Faz 1 onaylandı (18.11.2026), Faz 2 onaylandı (21.11.2026, v0.2.0), Faz 3 onaylandı (22.11.2026, v0.3.0; `PHASE3_PLAN.md`);** ürün kodu `app/`, `core/`, `androidApp/`; `poc/` yalnız referans, ürün yapısına girmez.
 Plan ve kararlar: `MASTER_SPEC.md` (bölüm 0 = kilitli kararlar). Durum notu: `~/fai_notes/FAI_Office_DURUM.md`
 (oturum başında oku, sonunda güncelle).
 
