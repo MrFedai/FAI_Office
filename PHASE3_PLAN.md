@@ -376,7 +376,7 @@ layer; nothing here resolves them.
 
 Depends on: P3.1, P3.2, P3.3.
 
-### P3.8 File screens
+### P3.8 File screens — YAPILDI (dev 20cb397)
 
 Efor: high
 
@@ -396,6 +396,14 @@ and state in both themes, EN and TR, at 390x844 and 1920x950; no hard-coded colo
 Depends on: P3.4, P3.5, P3.6, P3.7.
 
 Ask owner: approval of the `DESIGN.md` additions (at the review of this item).
+
+Result: screens in `app/src/commonMain/kotlin/org/faioffice/app/screens/` (`FilePatterns.kt`, `ListScreens.kt`,
+`FileInfoScreen.kt`, `SettingsScreen.kt`), state in `files/FilesModel.kt` over `FileHub` / `FileLibrary`; the
+information page sits over the current destination and `ShellNavigator` is saved with a `Saver` (Android process
+death). `DESIGN.md` section 6 "File screens" approved by the owner 2026-11-22, including two TEMEL differences (long
+desktop lists scroll with the page; no undo toast yet). `FileShotTest` 128 shots (2 themes x EN/TR x 390x844 /
+1920x950), `FileListKeyboardTest`, `FilesModelTest`, `FileTextTest`; `ci/ux-cekim.sh` runs `FileShotTest` too.
+Not done: browser test that a file picked in Chromium reaches the information page (no browser driver in the repo).
 
 ### P3.9 Phase 3 close
 
