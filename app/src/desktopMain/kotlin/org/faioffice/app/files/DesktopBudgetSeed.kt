@@ -51,13 +51,18 @@ object DesktopBudgetSeed {
                 LibrarySeed.folders(now) { DesktopFileAccess.refOf(folders[it]) },
             ) { ref -> ref.kind == FileRef.Kind.Path && isUnder(ref.location, root) }
         if (result.outcome == SeedResult.Outcome.Seeded) {
-            try {
-                (folders + elsewhere).forEach { Files.createDirectories(it) }
-                files.filterNot { it.missing }.forEach { Files.write(pathOf(it), ByteArray(it.size.toInt())) }
-            } catch (e: IOException) {
-                // The entries are written; their files then show as missing, still a full Home to measure.
-                DesktopFiles.stderr("budget seed: files not written (${e::class.simpleName})")
-            }
+            // Entries whose files could not be written show as missing: still a full Home to measure.
+            val failure =
+                try {
+                    folders.plusElement(elsewhere).forEach { Files.createDirectories(it) }
+                    files.filterNot { it.missing }.forEach { Files.write(pathOf(it), ByteArray(it.size.toInt())) }
+                    null
+                } catch (e: IOException) {
+                    e
+                } catch (e: InvalidPathException) {
+                    e // a C / POSIX locale on Linux cannot encode the Turkish names
+                }
+            failure?.let { DesktopFiles.stderr("budget seed: files not written (${it::class.simpleName})") }
         }
         return result
     }
