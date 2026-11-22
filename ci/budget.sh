@@ -51,7 +51,7 @@ seed_note() {
     local r f o
     read -r r f o <<<"$1"
     case "$o" in
-    seeded | alreadyseeded) echo "seeded $r+$f" ;;
+    seeded | already) echo "seeded $r+$f" ;;
     refused) echo "not seeded: the library held $r recent, $f folders of its own" ;;
     notsaved) echo "seed not saved ($r+$f in memory only)" ;;
     *) echo "seed not confirmed (no fai_budget seed line)" ;;

@@ -12,10 +12,18 @@ data class SeedResult(
     val recents: Int,
     val folders: Int,
 ) {
-    enum class Outcome { Seeded, AlreadySeeded, Refused, NotSaved }
+    /** [token] is the word in [line]. */
+    enum class Outcome(
+        val token: String,
+    ) {
+        Seeded("seeded"),
+        AlreadySeeded("already"),
+        Refused("refused"),
+        NotSaved("notsaved"),
+    }
 
     /** The line ci/budget.sh reads (logcat, stdout, FAI_BUDGET_OUT): `fai_budget seed 100 2 seeded`. */
-    val line: String get() = "fai_budget seed $recents $folders ${outcome.name.lowercase()}"
+    val line: String get() = "fai_budget seed $recents $folders ${outcome.token}"
 }
 
 /**
